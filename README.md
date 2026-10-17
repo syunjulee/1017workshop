@@ -1,4 +1,3 @@
-/Users/yunju/.rvm/scripts/rvm:29: operation not permitted: ps
 # 一起做完 · AI×UX 共學平台
 
 依 PRD v0.4／SDD v0.2 製作的第一版可操作原型，使用虛構資料，適合工作坊展示與組員討論。
