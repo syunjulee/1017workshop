@@ -272,6 +272,8 @@ const fresh=()=>({view:'home',
 });
 let S;
 try{S=JSON.parse(sessionStorage.getItem(KEY))||fresh()}catch(e){S=fresh()}
+// Reload begins on the map; team-only views are registered by the extension below.
+S.open=null;
 const save=()=>{try{sessionStorage.setItem(KEY,JSON.stringify(S))}catch(e){document.getElementById('toast').textContent='分頁暫存失敗，請先到團隊工作台匯出';document.getElementById('toast').hidden=false}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -373,7 +375,7 @@ function viewHatch(){const h=S.hatch;
   if(h.step==='wait')return`<div class="intro"><span class="eyebrow">三面鏡 · 等待</span><h1>你的蛋出現了</h1><p>蛋殼上浮出你選的 3 個特徵：${h.self.map(id=>C[id].feat).join('、')}。</p></div>
     <div class="grid2"><div class="card"><div class="monster-stage">${monsterSVG(myMonster({stage:'egg',auras:[],nickname:null}))}</div></div>
     <div class="stack"><div class="card"><h3>等夥伴和 AI 的時候，先猜一下</h3><label class="field">你覺得 AI 會挑你哪句話當口頭禪？<input type="text" id="guess" data-bind="hatch.guess" value="${esc(h.guess)}" placeholder="寫下你印象中自己說過的一句話"></label></div>
-    <div class="card"><div class="between"><span>你</span><span style="color:var(--good);font-weight:700">已鎖定</span></div><div class="between"><span>夥伴</span><span style="color:var(--good);font-weight:700">已送出 · 暱稱已鎖定</span></div><div class="between"><span>AI（團隊已審核）</span><span style="color:var(--good);font-weight:700">已送出</span></div></div>
+    <div class="card"><div class="between"><span>你</span><span style="color:var(--good);font-weight:700">已鎖定</span></div><div class="between"><span>夥伴</span><span style="color:var(--good);font-weight:700">已送出 · 暱稱已鎖定</span></div><div class="between"><span>AI（團隊已審核）</span><span style="color:var(--good);font-weight:700">${activeAI().length?"已送出":"待補；不判讀"}</span></div></div>
     <div class="row"><button class="btn gold" data-act="startFlip">三方到齊，開始翻牌</button><button class="btn link" data-act="backPick">回去改選卡</button></div></div></div>`;
   if(h.step==='flip'){const o=revealOrder(h.self),n=h.n,cur=n>0?o[n-1]:null;
     const shown=o.slice(0,n);const zs=shown.map(x=>x.zone);const last=n===o.length;
