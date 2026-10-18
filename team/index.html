@@ -1,0 +1,732 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>怪獸鎮｜團隊 PRD V3 修正版</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+
+<style>
+/* Layout: sticky town bar + horizontal place tabs; each place is one column (phone) or two (desktop) of quiet cards around the monster. */
+:root{
+  --bg:#F3F2F8; --surface:#FFFFFF; --sunk:#E9E7F2; --line:#D8D5E6;
+  --ink:#1D1B33; --muted:#5A5873; --accent:#4B3FD1; --accent-ink:#FFFFFF; --accent-soft:#E6E3FB;
+  --gold:#F2C14E; --gold-ink:#5C4300; --night:#1D1B33; --night-ink:#F3F2FA; --night-muted:#C3C1D6;
+  --good:#2F6B3A; --good-soft:#E2F1E0; --warn:#8A5300; --warn-soft:#FFF1DC;
+  --f-display:"LXGW WenKai TC","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14131F; --surface:#1E1C2E; --sunk:#262438; --line:#35324C;
+  --ink:#EEEDF7; --muted:#A9A6C2; --accent:#9C93FF; --accent-ink:#14131F; --accent-soft:#2C2850;
+  --gold:#F2C14E; --gold-ink:#F7D684; --night:#0E0D17; --night-ink:#F3F2FA; --night-muted:#B4B1CA;
+  --good:#8FD49A; --good-soft:#1E3324; --warn:#F2C177; --warn-soft:#3A2C17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14131F; --surface:#1E1C2E; --sunk:#262438; --line:#35324C;
+  --ink:#EEEDF7; --muted:#A9A6C2; --accent:#9C93FF; --accent-ink:#14131F; --accent-soft:#2C2850;
+  --gold:#F2C14E; --gold-ink:#F7D684; --night:#0E0D17; --night-ink:#F3F2FA; --night-muted:#B4B1CA;
+  --good:#8FD49A; --good-soft:#1E3324; --warn:#F2C177; --warn-soft:#3A2C17; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button,input,textarea,select{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.3;margin:0;text-wrap:balance}
+h1{font-size:28px} h2{font-size:22px} h3{font-size:18px}
+p{margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-size:22px;font-weight:700}
+.me-chip{display:flex;align-items:center;gap:8px;background:var(--sunk);border-radius:999px;padding:4px 12px 4px 4px;font-size:13px;border:0;cursor:pointer;min-height:40px}
+.me-chip svg{width:34px;height:34px}
+nav.places{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+nav.places::-webkit-scrollbar{display:none}
+.place{flex:none;border:0;background:none;padding:8px 14px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:500;min-height:40px;white-space:nowrap}
+.place[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
+.tag{font-size:11px;font-family:var(--f-mono);letter-spacing:.04em;padding:1px 6px;border-radius:6px;background:var(--sunk);color:var(--muted);margin-left:4px}
+.place[aria-current="page"] .tag{background:transparent;color:inherit;opacity:.8}
+main{padding-block:24px 64px}
+.intro{display:flex;flex-direction:column;gap:6px;margin-bottom:20px;max-width:65ch}
+.intro p{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.grid-aside{display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:820px){.grid2,.grid-aside{grid-template-columns:minmax(0,1fr)}}
+.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--surface);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card.night{background:var(--night);color:var(--night-ink)}
+.card.night .muted{color:var(--night-muted)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.ai-label{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--accent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:0 18px;border-radius:14px;border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer}
+.btn.gold{background:var(--gold);color:#1D1B33}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.link{background:none;color:var(--muted);text-decoration:underline;min-height:40px;padding:0 6px;font-weight:500}
+.btn:disabled{background:var(--sunk);color:var(--muted);cursor:not-allowed}
+.btn:focus-visible,.place:focus-visible,.pick:focus-visible,.chip:focus-visible,.me-chip:focus-visible,.seen:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.between{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+label.field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+input[type=text],textarea,select{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;font-size:15px;color:var(--ink)}
+textarea{resize:vertical;min-height:84px}
+.cards8{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:820px){.cards8{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pick{text-align:left;border:2px solid var(--surface);background:var(--surface);border-radius:16px;padding:14px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;min-height:132px}
+.pick[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.pick .nm{font-family:var(--f-display);font-size:18px;font-weight:700}
+.pick .ft{margin-top:auto;font-size:12px;color:var(--accent);font-weight:500}
+.cand{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:0 7px;color:var(--muted)}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;min-height:40px;cursor:pointer;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.zone{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px}
+.z-consensus{background:#FDF1CF;color:#6B4E00}.z-human_win{background:#FCE3EC;color:#8E2F52}.z-ai_assist{background:#E7EEFB;color:#2B4C8A}
+.z-partner_only{background:#FFEBDD;color:#8A3F12}.z-ai_only{background:#ECE7FB;color:#4A36B0}.z-hidden{background:#E4EEF6;color:#2B5272}.z-blind{background:#E3F1E1;color:#2F6B3A}
+.monster-stage{display:flex;justify-content:center;align-items:center;padding:6px 0}
+.monster-stage svg{width:min(260px,100%);height:auto}
+.dots{display:flex;gap:6px}
+.dots span{width:24px;height:6px;border-radius:999px;background:var(--sunk)}
+.dots span.on{background:var(--gold)}
+.quote{background:var(--sunk);border-radius:14px;padding:12px 14px;line-height:1.7}
+.night .quote{background:rgba(255,255,255,.08)}
+.stat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;text-align:center}
+.stat div{background:var(--sunk);border-radius:12px;padding:10px 4px;display:flex;flex-direction:column}
+.stat b{font-family:var(--f-mono);font-size:18px;font-variant-numeric:tabular-nums}
+.post{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.post:first-child{border-top:0}
+.post svg{width:46px;height:46px;flex:none}
+.post .who{font-weight:700;font-size:14px}
+.seen{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:4px 12px;font-size:13px;cursor:pointer;min-height:36px;color:var(--muted)}
+.seen[aria-pressed="true"]{background:var(--good-soft);color:var(--good);border-color:transparent}
+.lock{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;min-height:48px;gap:10px;border-top:1px solid var(--line)}
+.toggle-row:first-of-type{border-top:0}
+.tabs{display:inline-flex;background:var(--sunk);border-radius:12px;padding:4px;gap:4px}
+.tabs button{border:0;background:transparent;border-radius:9px;padding:8px 16px;font-weight:700;cursor:pointer;min-height:40px;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink)}
+.chapter{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--surface);border-radius:16px;padding:14px 16px;border:2px solid transparent;cursor:pointer;text-align:left;width:100%}
+.chapter[aria-pressed="true"]{border-color:var(--accent)}
+.sprout{font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px;background:var(--sunk);color:var(--muted)}
+.sprout.s1{background:var(--warn-soft);color:var(--warn)}.sprout.s2{background:var(--accent-soft);color:var(--accent)}.sprout.s3{background:var(--good-soft);color:var(--good)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--night);color:var(--night-ink);padding:10px 18px;border-radius:999px;font-size:14px;z-index:20;max-width:calc(100% - 32px)}
+.legend{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.legend div{display:flex;justify-content:space-between;gap:12px}
+.legend span:last-child{color:var(--muted);text-align:right}
+.note{font-size:12px;color:var(--muted)}
+.demo{display:inline-block;font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-soft);border-radius:6px;padding:1px 6px}
+footer{padding-block:24px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+@media (prefers-reduced-motion:no-preference){.pop{animation:pop .5s ease-out}@keyframes pop{from{transform:scale(.92);opacity:.6}to{transform:none;opacity:1}}}
+
+html,body{height:100%}
+body{display:flex;flex-direction:column;overflow:hidden}
+header.bar{position:relative;top:auto;flex:none}
+.bar-row{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bar-tools{display:flex;gap:8px;align-items:center;position:relative}
+.menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:8px;display:flex;flex-direction:column;min-width:220px;z-index:40}
+.menu button{text-align:left;border:0;background:none;padding:10px 12px;border-radius:10px;cursor:pointer;min-height:44px;display:flex;justify-content:space-between;gap:10px}
+.menu button:hover{background:var(--sunk)}
+.town{position:relative;flex:1;min-height:0;overflow:hidden;background:#BFDDA4;outline:none;touch-action:manipulation}
+.world{position:absolute;left:0;top:0;width:1200px;height:800px;transform-origin:0 0}
+.world>svg.bg{position:absolute;inset:0;width:1200px;height:800px;display:block}
+.veil{position:absolute;inset:0;background:#20204A;opacity:0;pointer-events:none;transition:opacity 1s}
+.town.night .veil{opacity:.32}
+.town.night .lamp{fill:#FFD86B;filter:drop-shadow(0 0 8px #FFD86B)}
+.spot{position:absolute;border:0;background:transparent;cursor:pointer;padding:0;border-radius:14px;z-index:5}
+.spot:hover{background:rgba(255,255,255,.12)}
+.spot:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.spot .lbl{position:absolute;left:50%;transform:translateX(-50%);bottom:-16px;white-space:nowrap;background:#1D1B33;color:#FFFFFF;font-size:14px;font-weight:700;padding:3px 11px;border-radius:999px;font-family:var(--f-display);pointer-events:none}
+.spot.locked .lbl{background:#6B6880}
+.spot:hover .lbl,.spot:focus-visible .lbl{background:#4B3FD1}
+.ent{position:absolute;left:0;top:0;width:64px;height:64px;pointer-events:none;will-change:transform}
+.ent .body{width:64px;height:64px}
+.ent .body svg{width:64px;height:64px;display:block;transition:transform .15s}
+.ent.face-l .body svg{transform:scaleX(-1)}
+.ent.npc{pointer-events:auto;cursor:pointer}
+.ent.npc:focus-visible{outline:3px solid var(--gold);border-radius:50%}
+.ent .tag{position:absolute;top:62px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;background:rgba(255,255,255,.92);color:#1D1B33;padding:0 8px;border-radius:999px;white-space:nowrap}
+.ent.me .tag{background:#4B3FD1;color:#FFFFFF}
+.ent.me .body{filter:drop-shadow(0 3px 0 rgba(29,27,51,.18))}
+.ent .bub{position:absolute;bottom:62px;left:50%;transform:translateX(-50%);background:#FFFFFF;color:#1D1B33;border-radius:12px;padding:4px 9px;font-size:13px;white-space:nowrap;box-shadow:0 2px 0 rgba(29,27,51,.18)}
+.ent .bub svg{width:22px;height:22px;display:block}
+@media (prefers-reduced-motion:no-preference){.ent.walk .body{animation:bob .32s ease-in-out infinite alternate}@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-5px)}}}
+.mark{position:absolute;width:24px;height:12px;border:3px solid #4B3FD1;border-radius:50%;z-index:6;pointer-events:none}
+.hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));background:var(--surface);color:var(--ink);border-radius:16px;padding:8px 10px 8px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.15);max-width:calc(100% - 32px);font-size:14px;z-index:20}
+.hint .btn{min-height:40px}
+@media (max-width:600px){.kbd{display:none}}
+.npccard{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));width:min(440px,calc(100% - 32px));background:var(--surface);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.2);z-index:21}
+.sheet{position:absolute;right:0;top:0;bottom:0;width:min(620px,100%);background:var(--bg);box-shadow:-10px 0 30px rgba(0,0,0,.2);display:flex;flex-direction:column;z-index:25}
+@media (max-width:700px){.sheet{top:auto;height:88%;border-radius:22px 22px 0 0;overflow:hidden}}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+.sheet-body{overflow-y:auto;padding:18px 16px calc(28px + env(safe-area-inset-bottom,0px));flex:1}
+.sheet .grid2,.sheet .grid-aside{grid-template-columns:minmax(0,1fr)}
+.sheet .cards8{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sheet h1{font-size:24px}
+.sheet .tabs{flex-wrap:wrap}
+.reveal{position:fixed;inset:0;background:rgba(14,13,23,.72);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.reveal .box{background:var(--night);color:var(--night-ink);border-radius:24px;padding:24px;max-width:420px;width:100%;text-align:center;display:flex;flex-direction:column;gap:12px}
+.reveal .muted{color:var(--night-muted)}
+</style>
+<header class="bar">
+  <div class="bar-row">
+    <div class="brand"><svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true"><ellipse cx="20" cy="22" rx="14" ry="16" fill="#F2C14E" stroke="currentColor" stroke-width="2.5"/><circle cx="15" cy="21" r="2.4" fill="currentColor"/><circle cx="25" cy="21" r="2.4" fill="currentColor"/></svg>怪獸鎮</div>
+    <div class="bar-tools"><span class="v3-mode">全模擬資料</span><button class="btn ghost" data-v3="lab" style="min-height:40px">團隊工作台</button>
+      <button class="btn ghost" id="placesBtn" aria-expanded="false" aria-controls="placesMenu" style="min-height:40px">地點</button>
+      <div class="menu" id="placesMenu" hidden><button data-spot="hatch"><span>三面鏡神殿</span><span class="note">P0</span></button><button data-spot="home"><span>我的窩</span><span class="note">P0</span></button><button data-spot="plaza"><span>今日一問</span><span class="note">P0</span></button><button data-spot="dojo"><span>提問道場</span><span class="note">P0</span></button><button data-spot="photo"><span>同框照相亭</span><span class="note"></span></button><button data-spot="quest"><span>冒險小徑</span><span class="note">P2</span></button><button data-spot="tower"><span>AI 觀察站</span><span class="note">施工中</span></button><button data-spot="hut"><span>學伴小屋</span><span class="note">施工中</span></button><button data-spot="market"><span>互測市集</span><span class="note">施工中</span></button></div>
+      <button class="me-chip" id="meChip" data-spot="home" aria-label="走回我的窩"></button>
+    </div>
+  </div>
+</header>
+<div class="town" id="town" tabindex="0" aria-label="怪獸鎮地圖">
+  <div class="world" id="world"></div>
+  <div class="hint" id="hint" hidden></div>
+  <div class="npccard" id="npccard" hidden></div>
+  <aside class="sheet" id="sheet" hidden aria-labelledby="sheetTitle">
+    <div class="sheet-head"><h2 id="sheetTitle"></h2><button class="btn ghost" id="leave" data-act="leave" style="min-height:40px">走出去</button></div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </aside>
+</div>
+<div class="reveal" id="reveal" hidden role="dialog" aria-modal="true"></div>
+<div class="toast" id="toast" hidden></div>
+<link rel="stylesheet" href="./team-updates.css"><script src="./team-core.js"></script>
+<script>
+/* ---------- 資料 ---------- */
+const CARDS = [
+  {id:'affirmation',name:'被肯定感',desc:'做的事被看見、被說出價值',feat:'星星角',color:'#F2C14E',aura:'閃光點點',cand:false},
+  {id:'community',name:'社群感',desc:'和一群人一起往前走',feat:'好多隻小手',color:'#F28C6B',aura:'牽手環紋',cand:false},
+  {id:'guidance',name:'引導支持',desc:'卡住時有人指個方向',feat:'提燈尾巴',color:'#8CC37A',aura:'指路箭頭',cand:false},
+  {id:'self_worth',name:'自我價值',desc:'相信自己做的東西有份量',feat:'堅固的殼',color:'#2F4B7C',aura:'盾形光',cand:false},
+  {id:'autonomy',name:'自主',desc:'用自己的步調和方法做事',feat:'小翅膀',color:'#7EC8E3',aura:'風旋紋',cand:true},
+  {id:'curiosity',name:'好奇探索',desc:'想知道新東西怎麼運作',feat:'天線大眼',color:'#9B7EDE',aura:'星點軌跡',cand:true},
+  {id:'visible_progress',name:'看得見的進步',desc:'能看到自己一步步變好',feat:'年輪紋身',color:'#8FD9C4',aura:'階梯光',cand:true},
+  {id:'psych_safety',name:'心理安全',desc:'可以放心試、放心犯錯',feat:'毛茸茸外皮',color:'#F4A7C0',aura:'柔光圈',cand:true}
+];
+const C = Object.fromEntries(CARDS.map(c=>[c.id,c]));
+const PARTNER = ['affirmation','psych_safety','guidance'];
+const PARTNER_NOTE = {affirmation:'聊到主管誇她的提案時，她整個人亮起來',psych_safety:'她說「先自己試過，確定不會出錯再拿出來」',guidance:'她說卡住時第一個想到的是去問學姊'};
+const AI = ['affirmation','guidance','curiosity'];
+const AI_QUOTE = {affirmation:'有人跟我說這個設計幫到他，我會開心一整天',guidance:'卡住的時候，我會先去找學姊問方向',curiosity:'看到新工具我都會先自己玩一輪'};
+const HEADLINE = '我比較希望先自己試過，確定不會出錯再拿出來';
+function activeAI(){return S?.meta?.aiAvailable===false?[]:AI}
+function selectedHeadline(){const lines=[HEADLINE,...Object.values(AI_QUOTE)];return lines[S?.meta?.headline||0]||HEADLINE}
+const ZONES = {
+  consensus:{name:'共識區',tone:'你被完整看見了',rank:0,egg:'蛋殼亮起來了'},
+  human_win:{name:'人腦勝區',tone:'夥伴懂你，AI 沒看出來',rank:1,egg:'蛋殼染上夥伴給的顏色'},
+  ai_assist:{name:'AI 補位區',tone:'AI 抓到了夥伴沒注意的',rank:1,egg:'蛋外圍出現 AI 的光環'},
+  partner_only:{name:'夥伴獨見',tone:'夥伴的觀察，值得問問他為什麼',rank:2,egg:'蛋殼染上夥伴給的顏色'},
+  ai_only:{name:'AI 獨見',tone:'AI 的推測，你同意嗎？',rank:2,egg:'蛋外圍出現 AI 的光環'},
+  hidden:{name:'隱藏區',tone:'你心裡重要、但還沒表現出來的',rank:3,egg:'蛋殼的裂紋變多了'},
+  blind:{name:'盲點區',tone:'別人都看見、你自己沒意識到的',rank:4,egg:'破殼了！小怪獸轉身，背上長出這張卡的特徵'}
+};
+const TYPES = {
+  spotlight:{name:'探照燈型',item:'lantern',itemName:'提燈'},
+  driller:{name:'鑽探型',item:'shovel',itemName:'小鏟子'},
+  confirmer:{name:'確認型',item:'magnifier',itemName:'放大鏡'},
+  listener:{name:'傾聽型',item:'big_ears',itemName:'大耳朵'}
+};
+const ATTRS = {
+  research:{name:'研究眼',part:'額頭的小眼睛'}, structure:{name:'結構骨',part:'背上的骨板'},
+  ai:{name:'AI 觸角',part:'頭上的觸角'}, automation:{name:'自動化齒輪',part:'身側的齒輪'}, judgment:{name:'判斷心',part:'胸前的心形徽記'}
+};
+const SPROUT = ['還沒開始','冒芽','長出','成形'];
+const CHAPTERS = [
+  {id:'foundation',name:'基礎地圖',topic:'使用者研究、資訊架構、互動流程',quests:[
+    {id:'f1',attr:'research',min:5,scenario:'新上線的記帳 App 次日留存只有兩成。你只有一天，要先找誰聊、問什麼？',hint:'先找「下載後沒再打開」的人，問他最後一次打開時在做什麼。',good:'你先鎖定流失的人而不是忠實用戶，訪談對象選得準。',next:'把「最後一次打開」改成具體的時間點，回想會更清楚。'},
+    {id:'f2',attr:'structure',min:8,scenario:'保險 App 的「理賠」藏在第三層選單，客服電話打爆了。你會怎麼調整資訊架構？',hint:'先列出使用者在出事當下最想完成的三件事。',good:'你從使用者出事當下的情境出發排優先順序。',next:'補一個驗證方式，例如五秒測試或樹狀測試。'}]},
+  {id:'ai_collab',name:'AI 協作',topic:'AI 工具、prompt、AI 輔助研究整理',quests:[
+    {id:'c1',attr:'ai',min:5,scenario:'你有 12 份訪談逐字稿，想用 AI 幫忙整理主題。你會怎麼下指令，並避免 AI 編造？',hint:'要求每個主題都附上逐字原句。',good:'你要求 AI 附原句，之後能回頭核對。',next:'再加一步：自己抽三份逐字稿比對 AI 的分類。'}]},
+  {id:'ai_product',name:'AI 產品設計',topic:'信任、透明、使用者可控、錯誤處理、對話設計',quests:[
+    {id:'p1',attr:'ai',min:5,scenario:'PM 要你兩天內設計 AI 客服的錯誤訊息：使用者問了 AI 答不出來的問題，畫面要怎麼說？',hint:'先想使用者「下一步能做什麼」，再決定語氣。',good:'你先承認 AI 答不出來，再給可以點的替代問題，使用者不會卡住。',next:'補一個「轉真人客服」的出口，並說明大概要等多久。'},
+    {id:'p2',attr:'structure',min:8,scenario:'AI 理財助理會推薦基金。你要怎麼讓使用者知道推薦的依據與風險？',hint:'把「為什麼推薦」和「可能虧損多少」放在同一個視線範圍。',good:'你把依據與風險放在一起，不讓風險藏在下一頁。',next:'加一個「我不想要這類推薦」的控制，讓使用者可以調整。'}]},
+  {id:'automation',name:'自動化與數據',topic:'流程自動化、數據分析、與 PM 和工程協作',quests:[
+    {id:'a1',attr:'automation',min:8,scenario:'團隊每週手動整理 200 則 App 評論。你會怎麼設計一個半自動流程？',hint:'先定義人一定要看的那一步。',good:'你保留了人工確認負評的步驟，自動化範圍清楚。',next:'說明用哪個指標判斷這個流程有沒有省到時間。'}]},
+  {id:'strategy',name:'策略與判斷',topic:'研究主導決策、AI × 自身領域、作品集敘事、負責任 AI',quests:[
+    {id:'s1',attr:'judgment',min:8,scenario:'老闆想在開戶流程加 AI 人臉辨識，但訪談發現長輩很怕被拍。你會怎麼回應？',hint:'把研究發現換成老闆在意的數字或風險。',good:'你沒有直接否決，而是提出可並行的替代方案。',next:'補一句這個決定對法遵與客訴量的影響。'}]}
+];
+const QUESTS = CHAPTERS.flatMap(ch=>ch.quests.map(q=>({...q,chapter:ch.id,chapterName:ch.name})));
+const TITLES = [
+  {name:'AI 產品設計師',key:['ai','research','judgment']},
+  {name:'UI/UX 設計師（AI 產品設計）',key:['research','structure','ai']},
+  {name:'Product Designer',key:['research','judgment','automation']},
+  {name:'Content Strategist / UX Writer',key:['judgment','research','ai']}
+];
+const NEIGHBORS = [
+  {name:'阿光',self:['community','curiosity','visible_progress'],partner:['community','guidance','curiosity'],stage:'grown',item:'lantern',quote:'先問他上一次遇到這個問題是什麼時候。'},
+  {name:'毛毛',self:['psych_safety','self_worth','autonomy'],partner:['psych_safety','affirmation','community'],stage:'baby',item:null,quote:'我會問：你說難用，是哪一步讓你想放棄？'},
+  {name:'提燈',self:['guidance','affirmation','community'],partner:['guidance','self_worth','visible_progress'],stage:'grown',item:'magnifier',quote:'請他把剛剛的操作再做一次給我看。'},
+  {name:'阿布',self:['self_worth','guidance','visible_progress'],partner:['self_worth','community','guidance'],stage:'baby',item:null,quote:'可以帶我看一次你平常怎麼用嗎？'},
+  {name:'星星',self:['affirmation','curiosity','community'],partner:['affirmation','curiosity','autonomy'],stage:'grown',item:'big_ears',quote:'你說的難用，和上次比有什麼不一樣？'},
+  {name:'小鏟',self:['autonomy','curiosity','self_worth'],partner:['curiosity','autonomy','psych_safety'],stage:'baby',item:null,quote:'「好難用」之前，你原本想完成什麼？'}
+];
+
+/* ---------- 狀態 ---------- */
+const KEY='monster-town-team-v3-r1';
+const fresh=()=>({view:'home',
+  hatch:{step:'pick',self:[],reasons:{},guess:'',n:0,disputed:{},disputeOpen:null,done:false},
+  card:{name:'',nickname:'試試看先生',finalized:false,vis:{headline:false,aura:false,back:false,disagree:false,nickname:false},tab:'A'},
+  bside:{guess:null,unlocked:false,override:null},
+  plaza:{answer:'',posted:false,seen:{}},
+  dojo:{q:'你會不會覺得這個功能很難用？',mine:'',step:'write',final:null,aiWrong:false},
+  quest:{chapter:'ai_product',active:null,answer:'',hint:false,phase:'list',guess:null,done:[],recalls:{},lastGrow:null,skills:{research:0,structure:0,ai:0,automation:0,judgment:0}},
+  checkin:{did:'',mins:'',stuck:'',conf:'',energy:'',tomorrow:'',submitted:false},
+  career:{guess:null,industry:'金融'},
+  open:null,pos:{x:200,y:440},visited:{},diary:[],seerShown:false,aiWrong:0,photo:null
+});
+let S;
+try{S=JSON.parse(sessionStorage.getItem(KEY))||fresh()}catch(e){S=fresh()}
+const save=()=>{try{sessionStorage.setItem(KEY,JSON.stringify(S))}catch(e){document.getElementById('toast').textContent='分頁暫存失敗，請先到團隊工作台匯出';document.getElementById('toast').hidden=false}};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- 規則（純函式） ---------- */
+function zoneOf(id,self){const s=self.includes(id),p=PARTNER.includes(id),a=activeAI().includes(id);
+  if(s&&p&&a)return'consensus';if(s&&p)return'human_win';if(s&&a)return'ai_assist';if(s)return'hidden';if(p&&a)return'blind';if(p)return'partner_only';if(a)return'ai_only';return null}
+function revealOrder(self){const ids=[...new Set([...self,...PARTNER,...activeAI()])];
+  return ids.map(id=>({id,zone:zoneOf(id,self)})).sort((x,y)=>ZONES[x.zone].rank-ZONES[y.zone].rank)}
+function alignment(self){const o=revealOrder(self);return Math.round(o.filter(x=>x.zone==='consensus').length/o.length*100)}
+function sproutLevel(attr){const n=S.quest.skills[attr]||0,r=S.quest.recalls[attr]||0;if(n>=6&&r>=1)return 3;if(n>=3)return 2;if(n>=1)return 1;return 0}
+function skillLevels(){return Object.fromEntries(Object.keys(ATTRS).map(a=>[a,sproutLevel(a)]))}
+function stage(){if(S.bside.unlocked)return'grown';if(S.hatch.done)return'baby';return'egg'}
+function itemNow(){if(!S.bside.unlocked)return null;return TYPES[S.bside.override||'confirmer'].item}
+function buildStatusCard(){const c=S.checkin,conf=+c.conf,en=+c.energy,tm=+c.tomorrow,stuck=c.stuck.trim();
+  let flow='剛好',diff='維持';
+  if(c.conf&&conf<=2&&stuck){flow='太難';diff='降一階'}else if(conf===5&&!stuck&&!S.quest.hint){flow='太簡單';diff='升一階'}
+  const len=(c.energy&&en<=2)||(c.tomorrow&&tm<15)?'3–5 分鐘微關卡':'一般關卡（約 10 分鐘）';
+  const recall=S.quest.done.length>0&&S.quest.done.length%3===0?'先回憶一題前面做過的關卡':'不用';
+  const lv=skillLevels(),target=TITLES.find(t=>t.name===nearTitle().name)||TITLES[0];
+  const pri=target.key.slice().sort((a,b)=>lv[a]-lv[b])[0];
+  return{flow,diff,len,recall,pri:ATTRS[pri].name,stuck,
+    highlight:S.quest.lastGrow?QUESTS.find(q=>q.id===S.quest.lastGrow)?.good:'未提供',
+    tone:'溫和示範型'}}
+function nearTitle(){const lv=skillLevels();return TITLES.map(t=>({...t,score:t.key.reduce((s,k)=>s+lv[k],0)})).sort((a,b)=>b.score-a.score)[0]}
+
+/* ---------- 小怪獸 ---------- */
+function star(x,y,r,fill){const p=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;p.push((x+rr*Math.cos(a)).toFixed(1)+','+(y+rr*Math.sin(a)).toFixed(1))}return`<polygon points="${p.join(' ')}" fill="${fill}" stroke="#1D1B33" stroke-width="2.5" stroke-linejoin="round"/>`}
+function featureSVG(id,op){const o=op??1;const k='#1D1B33';switch(id){
+  case'affirmation':return`<g opacity="${o}">${star(92,80,15,'#F2C14E')}${star(148,80,15,'#F2C14E')}</g>`;
+  case'community':return`<g opacity="${o}"><circle cx="54" cy="168" r="9" fill="#F28C6B" stroke="${k}" stroke-width="2.5"/><circle cx="186" cy="168" r="9" fill="#F28C6B" stroke="${k}" stroke-width="2.5"/><circle cx="62" cy="184" r="7" fill="#F28C6B" stroke="${k}" stroke-width="2.5"/><circle cx="178" cy="184" r="7" fill="#F28C6B" stroke="${k}" stroke-width="2.5"/></g>`;
+  case'guidance':return`<g opacity="${o}"><path d="M164 182 C 206 182, 216 146, 206 112" fill="none" stroke="${k}" stroke-width="4" stroke-linecap="round"/><rect x="194" y="88" width="24" height="28" rx="8" fill="#8CC37A" stroke="${k}" stroke-width="3"/><circle cx="206" cy="102" r="5" fill="#F2C14E"/></g>`;
+  case'self_worth':return`<g opacity="${o}"><ellipse cx="120" cy="170" rx="34" ry="22" fill="#2F4B7C" fill-opacity=".25" stroke="${k}" stroke-width="2.5"/><path d="M98 170h44M120 150v40" stroke="${k}" stroke-width="2" opacity=".5"/></g>`;
+  case'autonomy':return`<g opacity="${o}"><ellipse cx="50" cy="122" rx="16" ry="28" fill="#7EC8E3" stroke="${k}" stroke-width="3" transform="rotate(-28 50 122)"/><ellipse cx="190" cy="122" rx="16" ry="28" fill="#7EC8E3" stroke="${k}" stroke-width="3" transform="rotate(28 190 122)"/></g>`;
+  case'curiosity':return`<g opacity="${o}"><path d="M108 82 Q100 60 92 48" fill="none" stroke="${k}" stroke-width="3" stroke-linecap="round"/><circle cx="91" cy="45" r="6" fill="#9B7EDE" stroke="${k}" stroke-width="2.5"/><path d="M132 82 Q140 60 148 48" fill="none" stroke="${k}" stroke-width="3" stroke-linecap="round"/><circle cx="149" cy="45" r="6" fill="#9B7EDE" stroke="${k}" stroke-width="2.5"/></g>`;
+  case'visible_progress':return`<g opacity="${o}" fill="none" stroke="#2F7D68" stroke-width="2.5"><circle cx="120" cy="170" r="8"/><circle cx="120" cy="170" r="15"/><circle cx="120" cy="170" r="22" stroke-dasharray="4 4"/></g>`;
+  case'psych_safety':return`<g opacity="${o}">${[[58,146],[56,162],[182,146],[184,162],[66,118],[174,118]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="9" fill="#F4A7C0" stroke="${k}" stroke-width="2.5"/>`).join('')}</g>`;}return''}
+function monsterSVG(m){
+  const st=m.stage||'egg',cols=(m.colors&&m.colors.length?m.colors:['#ECEAF3','#ECEAF3','#ECEAF3']);const uid='m'+Math.random().toString(36).slice(2,8);const k='#1D1B33';
+  let s=`<svg viewBox="0 0 240 240" role="img" aria-label="${esc(m.label||'小怪獸')}"><defs><linearGradient id="${uid}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${cols[0]}"/><stop offset=".5" stop-color="${cols[1]||cols[0]}"/><stop offset="1" stop-color="${cols[2]||cols[0]}"/></linearGradient><radialGradient id="${uid}h"><stop offset="0" stop-color="#F2C14E" stop-opacity=".55"/><stop offset="1" stop-color="#F2C14E" stop-opacity="0"/></radialGradient></defs>`;
+  if(m.glow||m.fullGlow)s+=`<circle cx="120" cy="130" r="108" fill="url(#${uid}h)"/>`;
+  (m.auras||[]).forEach((a,i)=>{s+=`<circle cx="120" cy="128" r="${112-i*9}" fill="none" stroke="${C[a.id].color}" stroke-width="2.5" ${a.disputed?'stroke-dasharray="5 7" opacity=".6"':''}/>`});
+  if(m.pending)s+=`<circle cx="120" cy="128" r="110" fill="none" stroke="#9A97B3" stroke-width="1.5" stroke-dasharray="2 6"/>`;
+  if(st==='egg'){
+    s+=`<ellipse cx="120" cy="134" rx="70" ry="88" fill="${m.tint?`url(#${uid}g)`:'#ECEAF3'}" stroke="${k}" stroke-width="3"/>`;
+    (m.features||[]).slice(0,3).forEach((f,i)=>{const x=[96,146,120][i],y=[110,116,170][i];s+=`<circle cx="${x}" cy="${y}" r="11" fill="${k}" opacity=".16"/>`});
+    for(let i=0;i<(m.cracks||0);i++){const y=118+i*16;s+=`<path d="M56 ${y} L74 ${y-10} L88 ${y+6} L104 ${y-10} L120 ${y+6} L136 ${y-10} L152 ${y+6} L168 ${y-10} L184 ${y}" fill="none" stroke="${k}" stroke-width="2.5" stroke-linejoin="round"/>`}
+    return s+'</svg>'}
+  const lv=m.skills||{};const turned=!!m.turned;
+  if(m.item==='big_ears')s+=`<ellipse cx="64" cy="96" rx="18" ry="30" fill="#F4A7C0" stroke="${k}" stroke-width="3" transform="rotate(-20 64 96)"/><ellipse cx="176" cy="96" rx="18" ry="30" fill="#F4A7C0" stroke="${k}" stroke-width="3" transform="rotate(20 176 96)"/>`;
+  ['autonomy'].forEach(f=>{if((m.features||[]).includes(f))s+=featureSVG(f)});
+  (m.back||[]).forEach(f=>{if(f==='autonomy'||f==='guidance')s+=featureSVG(f,turned?1:.35)});
+  if((m.features||[]).includes('guidance'))s+=featureSVG('guidance');
+  if(lv.structure>=1)s+=`<path d="M74 96 L62 84 L82 88 Z" fill="#B8C2CC" stroke="${k}" stroke-width="2.5"/>`;
+  if(lv.structure>=2)s+=`<path d="M64 112 L48 104 L68 100 Z" fill="#B8C2CC" stroke="${k}" stroke-width="2.5"/>`;
+  if(lv.structure>=3)s+=`<path d="M58 128 L40 124 L58 114 Z" fill="#B8C2CC" stroke="${k}" stroke-width="2.5"/>`;
+  if(lv.ai===1)s+=`<path d="M112 80 L110 68" stroke="${k}" stroke-width="3" stroke-linecap="round"/>`;
+  if(lv.ai>=2)s+=`<path d="M114 80 Q110 62 104 50" fill="none" stroke="${k}" stroke-width="3" stroke-linecap="round"/><circle cx="103" cy="47" r="6" fill="${lv.ai===3?'#8FD9C4':'#FFFFFF'}" stroke="${k}" stroke-width="2.5"/>`;
+  if(lv.ai>=3)s+=`<path d="M126 80 Q130 62 136 50" fill="none" stroke="${k}" stroke-width="3" stroke-linecap="round"/><circle cx="137" cy="47" r="6" fill="#8FD9C4" stroke="${k}" stroke-width="2.5"/>`;
+  ['affirmation','curiosity'].forEach(f=>{if((m.features||[]).includes(f))s+=featureSVG(f)});
+  s+=`<ellipse cx="120" cy="140" rx="66" ry="62" fill="url(#${uid}g)" stroke="${k}" stroke-width="3"/>`;
+  ['psych_safety','community','self_worth','visible_progress'].forEach(f=>{if((m.features||[]).includes(f))s+=featureSVG(f)});
+  (m.back||[]).forEach(f=>{if(f!=='autonomy'&&f!=='guidance')s+=featureSVG(f,turned?1:.3)});
+  if(!turned){
+    const big=(m.features||[]).includes('curiosity');const r=big?10:8;
+    s+=`<circle cx="100" cy="132" r="${r}" fill="${k}"/><circle cx="140" cy="132" r="${r}" fill="${k}"/><circle cx="103" cy="129" r="2.6" fill="#fff"/><circle cx="143" cy="129" r="2.6" fill="#fff"/><ellipse cx="86" cy="150" rx="8" ry="5" fill="#E9799B" opacity=".6"/><ellipse cx="154" cy="150" rx="8" ry="5" fill="#E9799B" opacity=".6"/><path d="M110 152 Q120 162 130 152" fill="none" stroke="${k}" stroke-width="3" stroke-linecap="round"/>`;
+    if(lv.research===1)s+=`<path d="M114 108 Q120 112 126 108" fill="none" stroke="${k}" stroke-width="2.5" stroke-linecap="round"/>`;
+    if(lv.research>=2)s+=`<circle cx="120" cy="106" r="5.5" fill="#fff" stroke="${k}" stroke-width="2"/><circle cx="120" cy="106" r="2.5" fill="${k}"/>`;
+    if(lv.research>=3)s+=`<circle cx="106" cy="110" r="4.5" fill="#fff" stroke="${k}" stroke-width="2"/><circle cx="134" cy="110" r="4.5" fill="#fff" stroke="${k}" stroke-width="2"/>`;
+    if(lv.automation===1)s+=`<circle cx="160" cy="174" r="9" fill="none" stroke="${k}" stroke-width="2" stroke-dasharray="3 3"/>`;
+    if(lv.automation>=2)s+=`<circle cx="160" cy="174" r="10" fill="none" stroke="${k}" stroke-width="5" stroke-dasharray="3.5 3"/><circle cx="160" cy="174" r="7" fill="#B8C2CC" stroke="${k}" stroke-width="2"/>`;
+    if(lv.automation>=3)s+=`<circle cx="174" cy="160" r="7" fill="none" stroke="${k}" stroke-width="4" stroke-dasharray="3 2.5"/><circle cx="174" cy="160" r="5" fill="#B8C2CC"/>`;
+    if(lv.judgment>=1)s+=`${lv.judgment===3?`<circle cx="120" cy="176" r="18" fill="url(#${uid}h)"/>`:''}<path d="M120 186 C 104 174, 108 162, 120 170 C 132 162, 136 174, 120 186 Z" fill="${lv.judgment>=2?'#E9799B':'none'}" stroke="${k}" stroke-width="2.5"/>`;
+    if(m.item==='lantern')s+=`<path d="M176 156 H196 V164" fill="none" stroke="${k}" stroke-width="3"/><rect x="186" y="164" width="20" height="24" rx="6" fill="#F2C14E" stroke="${k}" stroke-width="3"/>`;
+    if(m.item==='shovel')s+=`<path d="M180 168 L206 132" stroke="#8A5A2B" stroke-width="5" stroke-linecap="round"/><path d="M200 128 L216 112 L222 126 L210 138 Z" fill="#B8C2CC" stroke="${k}" stroke-width="3"/>`;
+    if(m.item==='magnifier')s+=`<path d="M180 176 L196 160" stroke="${k}" stroke-width="5" stroke-linecap="round"/><circle cx="206" cy="148" r="15" fill="#E6F2FA" stroke="${k}" stroke-width="3.5"/>`;
+    (m.embrace||[]).forEach(f=>{s+=`<circle cx="120" cy="182" r="13" fill="${C[f].color}" stroke="${k}" stroke-width="2.5"/>`});
+  }
+  if(m.seer&&!turned)s+=`<ellipse cx="120" cy="93" rx="10" ry="6.5" fill="#fff" stroke="${k}" stroke-width="2.5"/><circle cx="120" cy="93" r="3.8" fill="#6B4FD8"/>`;
+  if(m.withShell!==false)s+=`<path d="M58 200 L72 184 L86 200 L102 184 L120 200 L138 184 L154 200 L168 184 L182 200 Q180 232 120 232 Q60 232 58 200 Z" fill="#ECEAF3" stroke="${k}" stroke-width="3" stroke-linejoin="round"/>`;
+  if(m.nickname&&!turned)s+=`<rect x="58" y="10" width="124" height="28" rx="14" fill="${k}"/><text x="120" y="29" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" font-family="Noto Sans TC, sans-serif">${esc(m.nickname)}</text>`;
+  return s+'</svg>'}
+function myMonster(extra){const self=S.hatch.self,o=revealOrder(self);const blind=o.filter(x=>x.zone==='blind').map(x=>x.id);const hidden=o.filter(x=>x.zone==='hidden').map(x=>x.id);
+  const st=stage();const v=extra&&extra.viewer==='public'?S.card.vis:null;
+  const back=v&&!v.back?[]:blind;
+  const m={stage:st,features:self,colors:PARTNER.map(id=>C[id].color),auras:(st==='egg'||(v&&!v.aura))?[]:activeAI().map(id=>({id,disputed:!!S.hatch.disputed[id]})),back,embrace:blind.length?[]:(v?[]:hidden),fullGlow:o.every(x=>x.zone==='consensus'),item:itemNow(),skills:skillLevels(),
+    nickname:(S.card.finalized&&(!v||v.nickname))?S.card.nickname:null,withShell:st==='baby',seer:seerCount()>=3};
+  m.label=describe(m);return Object.assign(m,extra||{})}
+function describe(m){if(m.stage==='egg')return'一顆還沒孵化的蛋';const f=m.features.map(id=>C[id].feat).join('、');const c=m.colors.length?PARTNER.map(id=>C[id].name).join('、')+'的顏色漸層':'';let t=`有${f}的小怪獸，${c}`;if(m.back.length)t+=`，背上長著${m.back.map(id=>C[id].feat).join('、')}`;const lv=m.skills||{};const sk=Object.keys(ATTRS).filter(a=>lv[a]).map(a=>ATTRS[a].part+SPROUT[lv[a]]);if(sk.length)t+='；技能特徵：'+sk.join('、');if(m.seer)t+='；額頭有一隻看穿的眼睛';return t}
+function miniSVG(n){return monsterSVG({stage:n.stage,features:n.self,colors:n.partner.map(id=>C[id].color),auras:[],back:[],item:n.item,skills:{},withShell:n.stage==='baby',label:n.name+'的小怪獸'})}
+
+/* ---------- 視圖 ---------- */
+function viewHatch(){const h=S.hatch;
+  if(h.step==='pick'){const n=h.self.length;
+    return`<div class="intro"><span class="eyebrow">三面鏡 · 開場鎖定</span><h1>選 3 張最像你的價值卡</h1><p>先猜你自己，夥伴也猜你，再看 AI 怎麼說，最後你決定。每張卡都會變成小怪獸身上的一個特徵，沒有好壞之分。</p></div>
+    <div class="stack"><div class="between"><span class="muted">已選 <b style="font-family:var(--f-mono)">${n}</b> / 3</span><span class="note">夥伴與 AI 的選卡在三方都送出前看不到</span></div>
+    <div class="cards8">${CARDS.map(c=>`<button class="pick" data-pick="${c.id}" aria-pressed="${h.self.includes(c.id)}"><span class="between"><span class="nm">${c.name}</span>${c.cand?'<span class="cand">候選</span>':''}</span><span class="small muted">${c.desc}</span><span class="ft">特徵：${c.feat}</span></button>`).join('')}</div>
+    ${n?`<div class="card"><h3>各寫一句理由</h3>${h.self.map(id=>`<label class="field">為什麼是「${C[id].name}」？<input type="text" id="reason-${id}" data-reason="${id}" value="${esc(h.reasons[id]||'')}" placeholder="一句話就好"></label>`).join('')}</div>`:''}
+    <div class="row"><button class="btn" data-act="lock" ${n===3?'':'disabled'}>${n===3?'送出並鎖定':'選滿 3 張再送出'}</button></div></div>`}
+  if(h.step==='wait')return`<div class="intro"><span class="eyebrow">三面鏡 · 等待</span><h1>你的蛋出現了</h1><p>蛋殼上浮出你選的 3 個特徵：${h.self.map(id=>C[id].feat).join('、')}。</p></div>
+    <div class="grid2"><div class="card"><div class="monster-stage">${monsterSVG(myMonster({stage:'egg',auras:[],nickname:null}))}</div></div>
+    <div class="stack"><div class="card"><h3>等夥伴和 AI 的時候，先猜一下</h3><label class="field">你覺得 AI 會挑你哪句話當口頭禪？<input type="text" id="guess" data-bind="hatch.guess" value="${esc(h.guess)}" placeholder="寫下你印象中自己說過的一句話"></label></div>
+    <div class="card"><div class="between"><span>你</span><span style="color:var(--good);font-weight:700">已鎖定</span></div><div class="between"><span>夥伴</span><span style="color:var(--good);font-weight:700">已送出 · 暱稱已鎖定</span></div><div class="between"><span>AI（團隊已審核）</span><span style="color:var(--good);font-weight:700">已送出</span></div></div>
+    <div class="row"><button class="btn gold" data-act="startFlip">三方到齊，開始翻牌</button><button class="btn link" data-act="backPick">回去改選卡</button></div></div></div>`;
+  if(h.step==='flip'){const o=revealOrder(h.self),n=h.n,cur=n>0?o[n-1]:null;
+    const shown=o.slice(0,n);const zs=shown.map(x=>x.zone);const last=n===o.length;
+    const eggSpec={stage:last?'baby':'egg',glow:zs.includes('consensus'),tint:last||zs.some(z=>['human_win','partner_only'].includes(z)),
+      auras:(last||zs.some(z=>['ai_assist','ai_only'].includes(z)))?activeAI().map(id=>({id,disputed:!!h.disputed[id]})):[],cracks:zs.filter(z=>z==='hidden').length,turned:last&&!h.done&&o.some(x=>x.zone==='blind'),nickname:null,withShell:last};
+    let panel='';
+    if(!cur)panel=`<div class="stack" style="text-align:center"><h2>三方都到齊了</h2><p class="muted">每翻一張卡，蛋就會有一點變化。本版只模擬本機揭曉，沒有雙手機同步。</p><button class="btn gold" data-act="flip">翻開第一張</button></div>`;
+    else{const c=C[cur.id],z=ZONES[cur.zone],who=[h.self.includes(cur.id)&&'你',PARTNER.includes(cur.id)&&'夥伴',activeAI().includes(cur.id)&&'AI'].filter(Boolean).join('・');
+      const canDispute=['ai_only','ai_assist'].includes(cur.zone);
+      panel=`<p style="color:var(--gold);font-weight:700;text-align:center">${last&&cur.zone!=='blind'?'破殼了！':''}${z.egg}</p>
+      <div class="card pop" style="background:var(--surface);color:var(--ink)"><div class="between"><span class="zone z-${cur.zone}">${z.name}</span><span class="small muted">選了這張：${who}</span></div>
+      <h2>${c.name}</h2><p>${z.tone}</p>
+      ${activeAI().includes(cur.id)?`<div class="quote"><div class="ai-label">AI 的看法</div>你說「${esc(AI_QUOTE[cur.id])}」，這透露你重視${c.name}。</div>`:''}
+      ${PARTNER.includes(cur.id)?`<div class="quote" style="background:var(--warn-soft)">請夥伴說說：你為什麼選這張？</div>`:''}
+      ${canDispute?(h.disputed[cur.id]?`<p class="small" style="color:var(--accent)">已標記「AI 讀錯我」：${esc(h.disputed[cur.id])}。這圈光環改成虛線了。</p>`:(h.disputeOpen===cur.id?`<label class="field">哪裡讀錯了？（必填）<textarea id="dispute" placeholder="例如：我玩新工具是因為工作需要"></textarea></label><div class="row"><button class="btn" data-act="saveDispute" data-id="${cur.id}">送出</button><button class="btn link" data-act="cancelDispute">取消</button></div>`:`<div><button class="btn ghost" data-act="openDispute" data-id="${cur.id}">AI 讀錯我</button></div>`)):''}
+      </div>${last?`<button class="btn gold" data-act="finishFlip">${eggSpec.turned?'轉回來，看看牠':'看結果'}</button>`:`<button class="btn gold" data-act="flip">翻下一張</button>`}`}
+    return`<div class="card night"><div class="between"><span class="eyebrow" style="color:var(--night-muted)">三面鏡 · 孵化</span><div class="dots" aria-label="已翻開 ${n} / ${o.length} 張">${o.map((_,i)=>`<span class="${i<n?'on':''}"></span>`).join('')}</div></div>
+    <div class="grid2"><div class="monster-stage">${monsterSVG(Object.assign(myMonster(),eggSpec,{label:eggSpec.stage==='egg'?'孵化中的蛋':'剛孵化的小怪獸'}))}</div><div class="stack">${panel}</div></div></div>`}
+  if(h.step==='result'){const o=revealOrder(h.self),al=alignment(h.self),cons=o.filter(x=>x.zone==='consensus').length;
+    return`<div class="intro"><span class="eyebrow">三面鏡 · 破殼之後</span><h1>牠是你的小怪獸了</h1></div><div class="grid2"><div class="card"><div class="monster-stage">${monsterSVG(myMonster({nickname:null}))}</div></div>
+    <div class="stack"><div class="stat"><div><span class="small muted">三方對齊度</span><b>${al}%</b><span class="note">${cons} 張共識 ÷ ${o.length} 張</span></div><div><span class="small muted">翻開</span><b>${o.length}</b><span class="note">張卡</span></div><div><span class="small muted">AI 讀錯我</span><b>${Object.keys(h.disputed).length}</b><span class="note">張</span></div></div>
+    <div class="card"><div class="ai-label">口頭禪 · AI 的看法</div><p style="font-family:var(--f-display);font-size:19px">「${esc(selectedHeadline())}」</p><div class="quote small"><b>你猜的是：</b>${h.guess?`「${esc(h.guess)}」`:'（沒有猜）'}</div></div>
+    <div class="card"><label class="field">替你的小怪獸取個名字<input type="text" id="mname" data-bind="card.name" value="${esc(S.card.name)}" placeholder="例如：小試"></label><button class="btn" data-act="toHome">完成，回到我的窩</button></div></div></div>`}
+}
+
+function zonesList(){const o=revealOrder(S.hatch.self);return o.map(x=>{const pub=x.zone==='consensus';return`<div class="card" style="gap:6px"><div class="between"><span class="zone z-${x.zone}">${ZONES[x.zone].name}</span><span class="lock">${pub?'公開':'僅自己可見'}</span></div><h3>${C[x.id].name}</h3><p class="small muted">${ZONES[x.zone].tone}</p></div>`}).join('')}
+function viewHome(){
+  if(!S.hatch.done)return`<div class="intro"><span class="eyebrow">我的窩</span><h1>你的蛋還沒孵化</h1><p>先到三面鏡選 3 張卡，和夥伴、AI 一起把牠孵出來。</p></div><div class="card" style="max-width:420px"><div class="monster-stage">${monsterSVG(myMonster())}</div><button class="btn" data-go="hatch">去三面鏡</button></div>`;
+  const tab=S.card.tab,name=S.card.name||'還沒取名';
+  const head=`<div class="intro"><span class="eyebrow">我的窩 · 只有你看得到這裡</span><h1>${esc(name)}</h1></div>`;
+  const left=`<div class="stack"><div class="card"><div class="monster-stage">${monsterSVG(myMonster())}</div>
+   <p class="quote small" style="text-align:center">「${esc(selectedHeadline())}」</p>
+   ${S.card.finalized?'':`<button class="btn gold" data-act="finalize">名片定案：揭曉夥伴取的暱稱</button>`}</div>
+   <div class="card"><h3>每個部位都有來源</h3><div class="legend">
+   <div><span>${S.hatch.self.map(id=>C[id].feat).join('、')}</span><span>你選的 3 張卡</span></div>
+   <div><span>${PARTNER.map(id=>C[id].name).join('、')}的顏色</span><span>夥伴選的卡</span></div>
+   <div><span>${activeAI().length?"三圈光環":"光環留白"}</span><span>AI 選的卡</span></div>
+   ${revealOrder(S.hatch.self).filter(x=>x.zone==='blind').map(x=>`<div><span>背上的${C[x.id].feat}</span><span>盲點區「${C[x.id].name}」</span></div>`).join('')}
+   ${S.bside.unlocked?`<div><span>${TYPES[S.bside.override||'confirmer'].itemName}</span><span>訪談者類型</span></div>`:''}
+   ${Object.keys(ATTRS).filter(a=>sproutLevel(a)).map(a=>`<div><span>${ATTRS[a].part}（${SPROUT[sproutLevel(a)]}）</span><span>冒險小徑</span></div>`).join('')}
+   </div></div></div>`;
+  let right=`<div class="tabs" role="tablist">${[['A','A 面'],['B','B 面'],['daily','今日打卡'],['career','職涯建議卡'],['share','分享卡'],['diary','日記']].map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join('')}</div>`;
+  if(tab==='A')right+=`<div class="stack">${zonesList()}<div class="card"><h3>誰可以看到</h3>${[['headline','口頭禪'],['aura','AI 光環'],['back','背上的秘密'],['disagree','AI 讀錯我'],['nickname','夥伴取的暱稱']].map(([k,l])=>`<div class="toggle-row"><span>${l}</span><button class="chip" data-vis="${k}" aria-pressed="${S.card.vis[k]}">${S.card.vis[k]?'公開':'僅自己'}</button></div>`).join('')}<p class="note">盲點區、隱藏區、提問健檢數字永遠只有你看得到。</p></div>
+   ${Object.keys(S.hatch.disputed).length?`<div class="card"><h3>AI 讀錯我</h3>${Object.entries(S.hatch.disputed).map(([id,r])=>`<p><b>${C[id].name}</b>：${esc(r)}</p>`).join('')}</div>`:''}</div>`;
+  if(tab==='B')right+=viewBSide();
+  if(tab==='daily')right+=viewDaily();
+  if(tab==='career')right+=viewCareer();
+  if(tab==='share')right+=viewShare();
+  if(tab==='diary')right+=viewDiary();
+  return head+`<div class="grid-aside">${left}<div class="stack">${right}</div></div>`}
+function viewBSide(){const b=S.bside;
+  if(!b.unlocked)return`<div class="card"><h3>B 面在第 2 週互訪後打開</h3><p class="muted">先猜猜自己是哪一種訪談者，再上傳兩份逐字稿（你當訪談者、你當受訪者）。</p>
+   <div class="cards8" style="grid-template-columns:repeat(2,minmax(0,1fr))">${Object.entries(TYPES).map(([k,t])=>`<button class="pick" style="min-height:76px" data-bguess="${k}" aria-pressed="${b.guess===k}"><span class="nm">${t.name}</span><span class="ft">道具：${t.itemName}</span></button>`).join('')}</div>
+   <label class="row small"><input type="checkbox" id="consent"> 受訪者已同意，原文 30 天後刪除</label>
+   <div><button class="btn" data-act="unlockB" ${b.guess?'':'disabled'}>${b.guess?'送出逐字稿，等團隊審核':'先猜一個類型'}</button> <span class="demo">示範：審核會立即通過</span></div></div>`;
+  const t=TYPES[b.override||'confirmer'];
+  return`<div class="card night"><span class="muted small">你猜 ${TYPES[b.guess].name} → ${b.override?'你自選 ':'AI 判讀 '}${t.name}</span><h2>${t.name}・拿到了${t.itemName}</h2><p class="muted small">是你和夥伴完成第 2 週互訪，讓牠進化成成長體的。</p></div>
+  <div class="card"><div class="between"><h3>提問健檢</h3><span class="ai-label">AI 的看法</span></div>
+  ${[['二選一提問','4','例：「你是比較常用手機還是電腦？」'],['引導式提問','2','例：「這樣應該很不方便吧？」'],['開放式提問','5','讓對方自己說的空間很夠'],['回溯式提問','1','例：「上一次遇到是什麼時候？」'],['聽到情緒詞後追問','0 / 3','對方說了 3 次情緒詞，可以多停一下']].map(r=>`<div class="toggle-row"><div><div>${r[0]}</div><div class="note">${r[2]}</div></div><b style="font-family:var(--f-mono)">${r[1]}</b></div>`).join('')}
+  <div class="quote"><b>下一步只要一個：</b>下次聽到「很煩」，先問「煩在哪裡」。</div></div>
+  <div class="card"><h3>AI 讀錯我？自己選</h3><div class="row">${Object.entries(TYPES).map(([k,tt])=>`<button class="chip" data-override="${k}" aria-pressed="${(b.override||'confirmer')===k}">${tt.name}</button>`).join('')}</div><p class="note">選了之後，道具跟著換。</p></div>`}
+function viewDaily(){const c=S.checkin;
+  const opts=(key,arr)=>`<div class="row">${arr.map(([v,l])=>`<button class="chip" data-ck="${key}" data-v="${v}" aria-pressed="${c[key]===v}">${l}</button>`).join('')}<button class="btn link" data-ck="${key}" data-v="">略過</button></div>`;
+  const form=`<div class="card"><div class="between"><h3>今日打卡</h3><span class="note">5 題，每題都可以略過</span></div>
+   <label class="field">今天學了或做了什麼？${S.quest.done.length?`<span class="small" style="color:var(--accent)">已帶入 ${S.quest.done.length} 個冒險關卡</span>`:''}<textarea id="ck-did" data-bind="checkin.did" placeholder="外部課程、工作上用到的也算">${esc(c.did)}</textarea></label>
+   <div class="field">大約投入多久？${opts('mins',[['5','5 分'],['15','15 分'],['30','30 分'],['60','1 小時+']])}</div>
+   <label class="field">哪裡卡住？<input type="text" id="ck-stuck" data-bind="checkin.stuck" value="${esc(c.stuck)}" placeholder="沒有就留白"></label>
+   <div class="field">對今天內容的把握（1 還很模糊，5 很有把握）${opts('conf',[['1','1'],['2','2'],['3','3'],['4','4'],['5','5']])}</div>
+   <div class="field">今天的精力 ${opts('energy',[['1','1'],['2','2'],['3','3'],['4','4'],['5','5']])}</div>
+   <div class="field">明天大約有多少時間？${opts('tomorrow',[['10','10 分內'],['30','30 分'],['60','1 小時+']])}</div>
+   <div><button class="btn" data-act="submitCheckin">送出，看今天的狀態卡</button></div></div>`;
+  if(!c.submitted)return form;
+  const sc=buildStatusCard();
+  return`<div class="card"><div class="between"><h3>學習狀態卡</h3><span class="note">由規則計算，沒有用 AI</span></div>
+  <div><div class="small" style="color:var(--good);font-weight:700">今天的亮點</div><p>${esc(sc.highlight)}</p></div>
+  <div><div class="small" style="color:var(--warn);font-weight:700">卡住的地方</div><p>${sc.stuck?esc(sc.stuck):'未提供'}</p>${sc.stuck?`<div class="quote small"><b>可以試試：</b>把卡住的地方寫成一個問題，到提問道場請夥伴改寫。</div>`:''}<p class="note">這次的難度判斷：${sc.flow}</p></div>
+  <div class="grid2" style="gap:10px">${[['難度',sc.diff],['長度',sc.len],['回憶',sc.recall],['優先練',sc.pri]].map(([k,v])=>`<div class="quote"><div class="note">${k}</div><b>${v}</b></div>`).join('')}</div>
+  <button class="btn link" data-act="editCheckin">修改今天的打卡</button></div>`}
+function viewCareer(){const g=S.career.guess;
+  if(!g)return`<div class="card"><h3>看看身上的特徵，你覺得自己現在最接近哪個職稱？</h3><div class="stack">${TITLES.map(t=>`<button class="chapter" data-cguess="${t.name}"><span>${t.name}</span></button>`).join('')}</div><p class="note">職稱取自 104 上已出現的 AI 相關職缺。</p></div>`;
+  const near=nearTitle(),lv=skillLevels(),weak=near.key.slice().sort((a,b)=>lv[a]-lv[b])[0];
+  const bridge={'金融':'練習 AI 理財助理的信任與揭露設計：AI 給建議時，使用者怎麼知道依據和風險？','電商':'練習 AI 推薦商品的透明度：使用者能不能知道「為什麼推薦給我」並關掉它？','其他':'找出你產業裡最常被問的一個問題，設計 AI 答不出來時的畫面。'}[S.career.industry];
+  return`<div class="card night"><span class="muted small">你猜 ${esc(g)} · ${g===near.name?'猜中了':'差一點'}</span><span class="muted small">你現在最接近</span><h2>${near.name}</h2><p class="muted small">這個職稱最需要：${near.key.map(k=>ATTRS[k].name).join('、')}。</p></div>
+  <div class="card"><div class="between"><h3>薪資參考</h3><span class="note">UX 設計師年薪 · 大學</span></div><div class="stat"><div><span class="note">P25</span><b>63 萬</b></div><div><span class="note">中位數</span><b>77.7 萬</b></div><div><span class="note">P75</span><b>97.5 萬</b></div></div><p class="note">來源：104 薪資情報，2026 年資料。逐筆職缺統計尚未建立，不顯示提及率。</p></div>
+  <div class="card"><div class="small" style="color:var(--warn);font-weight:700">最值得多練的一項</div><h3>${ATTRS[weak].name}</h3><p class="muted small">它是這個職稱需要、而你目前${SPROUT[lv[weak]]==='還沒開始'?'還沒開始練':'還在'+SPROUT[lv[weak]]}的特徵。</p></div>
+  <div class="card"><div class="between"><span class="ai-label">把 AI 接進你原本的產業 · AI 的看法</span><select id="ind" data-bind="career.industry" style="width:auto">${['金融','電商','其他'].map(i=>`<option ${S.career.industry===i?'selected':''}>${i}</option>`).join('')}</select></div><p>${bridge}</p></div>
+  <div class="card"><div class="small" style="color:var(--good);font-weight:700">下一步，30 分鐘內可以做</div><p>到冒險小徑做一關「${CHAPTERS.find(c=>c.quests.some(q=>q.attr===weak))?.name||'策略與判斷'}」。</p></div>
+  <p class="note">這是參考方向，不保證錄取或薪資。</p><button class="btn link" data-act="careerReset">重新猜一次</button>`}
+function viewShare(){const v=S.card.vis,cons=revealOrder(S.hatch.self).filter(x=>x.zone==='consensus');
+  return`<div class="card" style="max-width:380px;align-self:flex-start"><div class="monster-stage">${monsterSVG(myMonster({viewer:'public'}))}</div><h2 style="text-align:center">${esc(S.card.name||'還沒取名')}</h2>${v.headline?`<p class="quote small" style="text-align:center">「${esc(selectedHeadline())}」</p>`:''}<div class="row" style="justify-content:center">${cons.map(x=>`<span class="zone z-consensus">${C[x.id].name}</span>`).join('')}</div></div><p class="note">這是別人看到的樣子：只出現你設為公開的部位。到 A 面調整「誰可以看到」。</p>`}
+
+function viewPlaza(){const p=S.plaza;
+  return`<div class="intro"><span class="eyebrow">中央廣場 · 今日一問</span><h1>使用者說「這個 App 好難用」，你的第一個追問是什麼？</h1><p>先寫你自己的答案，才看得到別人的。回答一句就好。</p></div>
+  <div class="grid2"><div class="stack">${p.posted?`<div class="card"><div class="post"><div>${monsterSVG(myMonster({nickname:null}))}</div><div><div class="who">${esc(S.card.name||'你')}（你）</div><p>${esc(p.answer)}</p><p class="note" style="margin-top:6px">看見你的：毛毛、提燈 <span class="demo">示範</span></p></div></div></div>`:`<div class="card"><label class="field">你的回答<textarea id="plaza" data-bind="plaza.answer" placeholder="例如：你剛剛是想完成什麼事？">${esc(p.answer)}</textarea></label><div><button class="btn" data-act="postPlaza">送出，看看大家怎麼問</button></div></div>`}
+  <p class="note">這裡只有「我看見了」，沒有按讚數、沒有熱門排序。只有發文的人看得到是誰看見。</p></div>
+  <div class="card"><h3>鎮上的回答</h3>${p.posted?NEIGHBORS.map((n,i)=>`<div class="post"><div>${miniSVG(n)}</div><div style="min-width:0;flex:1"><div class="who">${n.name}</div><p>${esc(n.quote)}</p><div style="margin-top:6px"><button class="seen" data-seen="${i}" aria-pressed="${!!p.seen[i]}">${p.seen[i]?'已看見':'我看見了'}</button></div></div></div>`).join(''):`<p class="muted">${NEIGHBORS.length} 隻小怪獸已經回答了。先留下你的回答，才能看到他們怎麼問。</p><div class="row">${NEIGHBORS.map(n=>`<span style="width:46px;display:inline-block" title="${n.name}">${miniSVG(n)}</span>`).join('')}</div>`}</div></div>`}
+
+function aiRewrite(q){return'上一次你用到這個功能時，發生了什麼事？'}
+function viewDojo(){const d=S.dojo;
+  const partners=[{name:'阿光',text:'你最近一次用這個功能，是想完成什麼？'},{name:'提燈',text:'用這個功能時，哪一步讓你停下來最久？'}];
+  const opt=(key,label,text,src)=>`<button class="chapter" data-final="${key}" aria-pressed="${d.final===key}"><span style="min-width:0"><span class="small muted">${label}</span><br>${esc(text)}</span>${src}</button>`;
+  return`<div class="intro"><span class="eyebrow">提問道場</span><h1>把一句訪談題，改成更好的問法</h1><p>你先改，夥伴再改，AI 永遠最後出現；用哪一版由你決定。</p></div>
+  <div class="grid2"><div class="stack"><div class="card"><label class="field">準備要問的一句話<input type="text" id="dq" data-bind="dojo.q" value="${esc(d.q)}" ${d.step!=='write'?'disabled':''}></label>
+  <label class="field">你自己先改一版<textarea id="dmine" data-bind="dojo.mine" placeholder="改成不引導、讓對方自己說的問法" ${d.step!=='write'?'disabled':''}>${esc(d.mine)}</textarea></label>
+  ${d.step==='write'?`<div><button class="btn" data-act="dojoLock" ${d.mine.trim()?'':'disabled'}>${d.mine.trim()?'鎖定，看夥伴怎麼改':'先寫你的版本'}</button></div>`:''}</div>
+  ${d.step!=='write'?`<div class="card"><h3>夥伴的改寫</h3>${partners.map(p=>`<div class="post"><div style="width:46px">${miniSVG(NEIGHBORS.find(n=>n.name===p.name))}</div><div><div class="who">${p.name}</div><p>${p.text}</p></div></div>`).join('')}<span class="demo" style="align-self:flex-start">示範夥伴</span>
+  ${d.step==='partners'?`<div><button class="btn gold" data-act="dojoAI">最後揭曉 AI 的改寫</button></div>`:''}</div>`:''}</div>
+  <div class="stack">${d.step==='ai'||d.step==='done'?`<div class="card"><div class="ai-label">AI 的改寫 · 最後才出現</div><p style="font-family:var(--f-display);font-size:18px">${aiRewrite(d.q)}</p>${d.aiWrong?'<p class="small" style="color:var(--accent)">你標記了「AI 讀錯了」，這次會算進 AI 觀察站。</p>':`<div><button class="btn ghost" data-act="dojoWrong">AI 讀錯了</button></div>`}</div>
+  <div class="card"><h3>你要用哪一版？</h3><div class="stack">${opt('mine','你的版本',d.mine,'')}${opt('p0','阿光的改寫',partners[0].text,'')}${opt('p1','提燈的改寫',partners[1].text,'')}${opt('ai','AI 的改寫',aiRewrite(d.q),'')}</div>${d.final?`<p class="small" style="color:var(--good)">已選定。帶著這一句去下一次訪談吧。</p><button class="btn link" data-act="dojoReset">再練一句</button>`:''}</div>`:`<div class="card"><h3>道場的規則</h3><p class="muted">送出前看不到別人的版本。AI 的改寫等人都改完才揭曉，而且可以被標記「AI 讀錯了」。</p></div>`}</div></div>`}
+
+function viewQuest(){const q=S.quest;const lv=skillLevels();
+  const head=`<div class="intro"><span class="eyebrow">冒險小徑 · 個人練習</span><h1>真實工作情境，練出身上的特徵</h1><p>題目是依團隊規格撰寫的模擬工作情境，不含真實職缺串接。五個章節都開放，想去哪都可以。抽提示卡不影響任何東西。</p></div>`;
+  const side=`<div class="stack"><div class="card"><div class="monster-stage">${monsterSVG(myMonster({nickname:null}))}</div><div class="legend">${Object.keys(ATTRS).map(a=>`<div><span>${ATTRS[a].name}</span><span class="sprout s${lv[a]}">${SPROUT[lv[a]]}</span></div>`).join('')}</div><p class="note">特徵只長不退。成形需要多練幾關，加上至少一次回憶關。</p></div></div>`;
+  let body='';
+  if(q.phase==='list'){const st=buildStatusCard();
+    body=`<div class="card night"><span class="muted small">今天的建議（依學習狀態卡）</span><h3>${CHAPTERS.find(c=>c.id==='ai_product').name} · 錯誤訊息怎麼說</h3><span class="muted small">${st.len} · 難度${st.diff}</span><div><button class="btn gold" data-start="p1">開始這一關</button></div></div>
+    ${q.done.length&&q.done.length%3===0?`<div class="card" style="background:var(--warn-soft)"><b>回憶關</b><p class="small">你已經完成 ${q.done.length} 關。換個說法，重訪一題前面做過的。</p><div><button class="btn" data-start="${q.done[0]}" data-recall="1">做回憶關</button></div></div>`:''}
+    ${CHAPTERS.map(ch=>`<div class="card"><div class="between"><h3>${ch.name}</h3>${ch.id==='ai_product'?'<span class="zone z-ai_only">推薦</span>':''}</div><p class="small muted">${ch.topic}</p>${ch.quests.map(x=>`<button class="chapter" data-start="${x.id}"><span style="min-width:0">${esc(x.scenario.slice(0,34))}…</span><span class="sprout s${lv[x.attr]}">${ATTRS[x.attr].name} · 約 ${x.min} 分</span></button>`).join('')}</div>`).join('')}`}
+  else{const x=QUESTS.find(z=>z.id===q.active);if(!x){q.phase='list';return viewQuest()}
+    body=`<div class="card"><div class="between"><span class="ai-label">${x.chapterName} · 練 ${ATTRS[x.attr].name}${q.recall?' · 回憶關':''}</span><button class="btn link" data-act="questBack">回到小徑</button></div><p style="font-size:17px;line-height:1.75">${x.scenario}</p>`;
+    if(q.phase==='answer')body+=`<label class="field">你的做法<textarea id="qa" data-bind="quest.answer" placeholder="寫重點就好">${esc(q.answer)}</textarea></label>${q.hint?`<div class="quote" style="background:var(--warn-soft)"><b>提示卡：</b>${x.hint}</div>`:''}<div class="row"><button class="btn ghost" data-act="hint">抽一張提示卡</button><button class="btn" data-act="submitQuest" ${q.answer.trim()?'':'disabled'}>送出</button></div></div>`;
+    if(q.phase==='pending')body+=`<div class="quote" style="text-align:center"><b>嚮導正在看你的答案</b><br><span class="small muted">回饋整理好就會出現。</span></div><div><button class="btn ghost" data-act="feedbackArrive">回饋到了</button> <span class="demo">示範：正式版由團隊審核後送達</span></div></div>`;
+    if(q.phase==='feedback'||q.phase==='reveal')body+=`<div class="quote"><div class="ai-label">嚮導的回饋 · AI 的看法</div><p><b style="color:var(--good)">做得好的地方：</b>${x.good}</p><p style="margin-top:6px"><b style="color:var(--warn)">可以再進一步：</b>${x.next}</p></div></div>`;
+    if(q.phase==='feedback')body+=`<div class="card"><h3>猜猜看，哪個特徵會長大？</h3><div class="row">${Object.keys(ATTRS).map(a=>`<button class="chip" data-qguess="${a}">${ATTRS[a].name}</button>`).join('')}</div></div>`;
+    if(q.phase==='reveal'){const before=q.before,after=lv[x.attr];
+      body+=`<div class="card night pop"><span class="muted small">你猜 ${ATTRS[q.guess].name} · ${q.guess===x.attr?'猜中了':'這次是 '+ATTRS[x.attr].name}</span><h2>${after>before?`${ATTRS[x.attr].part}${SPROUT[after]}了`:`${ATTRS[x.attr].part}又長了一點`}</h2><p class="muted small">是你完成「${x.chapterName}」這一關，讓牠長大的。</p></div>
+      <div class="card"><b>作品集碎片</b><p class="small">把這題的前後版本並排，寫一段「為什麼這樣改」。</p><b>下一關可以找人一起</b><p class="small">找一位${ATTRS[Object.keys(ATTRS).sort((a,b)=>lv[a]-lv[b])[0]].part}比較明顯的夥伴，一起試試看。</p><div class="row"><button class="btn" data-act="questBack">回到小徑</button><button class="btn ghost" data-act="gotoDaily">做今天的打卡</button></div></div>`}}
+  return head+`<div class="grid-aside">${side}<div class="stack">${body}</div></div>`}
+
+/* ---------- 怪獸鎮：地圖與走路 ---------- */
+const W=1200,H=800,RY=420,SPD=190;
+const SPOTS={
+  hatch:{name:'三面鏡神殿',dx:600,dy:262,box:[505,96,190,166],open:true,diary:'走進三面鏡神殿。鏡子裡有三個角度的我：我自己、夥伴，還有 AI。'},
+  home:{name:'我的窩',dx:200,dy:466,box:[128,470,144,108],open:true,diary:'回到我的窩。這裡只有我看得到，盲點和隱藏區都收在這裡。'},
+  plaza:{name:'今日一問',dx:690,dy:376,box:[652,306,76,64],open:true,diary:'在廣場的告示板前停下來。今天的題目要先回答，才看得到大家的。'},
+  photo:{name:'同框照相亭',dx:512,dy:376,box:[480,306,64,64],open:true,diary:'發現廣場邊的照相亭，可以和旁邊的小怪獸並排拍一張。'},
+  dojo:{name:'提問道場',dx:980,dy:344,box:[902,200,156,140],open:true,diary:'推開提問道場的門。這裡的 AI 永遠最後才開口。'},
+  quest:{name:'冒險小徑',dx:1112,dy:420,box:[1090,330,110,150],open:true,diary:'走到鎮的東邊，小徑通往森林。每一關都是一個真實的工作情境。'},
+  tower:{name:'AI 觀察站',dx:200,dy:344,box:[140,170,120,170],open:false,soon:'第二場工作坊後開放。到時可以把「AI 讀錯我」分享到這裡，大家一起討論 AI 為什麼這樣判讀。'},
+  hut:{name:'學伴小屋',dx:840,dy:466,box:[768,470,144,108],open:false,soon:'配對學伴後開放。你們的小怪獸會在這裡同框，夥伴寫給你的預言卡也收在這裡。'},
+  market:{name:'互測市集',dx:600,dy:656,box:[500,660,200,110],open:false,soon:'和陪跑計畫一起開放。可以貼產品找受測者，測試前先猜使用者會卡在哪。'}
+};
+const MOTION=!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+const town=document.getElementById('town'),world=document.getElementById('world');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ICON={
+  wave:'<svg viewBox="0 0 24 24" fill="none" stroke="#4B3FD1" stroke-width="2.4" stroke-linecap="round"><path d="M8 14c2-4 4-6 8-8"/><path d="M5 10c1-2 2-3 4-4"/><path d="M10 19c3-1 6-3 9-7"/></svg>',
+  heart:'<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="#E9799B"/></svg>',
+  spark:'<svg viewBox="0 0 24 24"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z" fill="#F2C14E" stroke="#B88A12" stroke-width="1"/></svg>',
+  seen:'<svg viewBox="0 0 24 24" fill="none" stroke="#2F6B3A" stroke-width="2.4" stroke-linecap="round"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5" fill="#2F6B3A"/></svg>'
+};
+function tree(x,y,r,c){return`<rect x="${x-4}" y="${y}" width="8" height="${r}" rx="3" fill="#8A6A47"/><circle cx="${x}" cy="${y}" r="${r}" fill="${c||'#6FAE5B'}" stroke="#3F6E37" stroke-width="2"/><circle cx="${x-r*.3}" cy="${y-r*.3}" r="${r*.3}" fill="#8CC77A"/>`}
+function scaffold(x,y,w,h){let s=`<g opacity=".55" stroke="#8A6A47" stroke-width="2">`;for(let i=-h;i<w;i+=22)s+=`<line x1="${x+Math.max(i,0)}" y1="${y+Math.max(-i,0)}" x2="${x+Math.min(i+h,w)}" y2="${y+Math.min(h,w-i)}"/>`;return s+`</g>`}
+function townArt(){const k='#1D1B33';
+  let s=`<svg class="bg" viewBox="0 0 1200 800" aria-hidden="true"><rect width="1200" height="800" fill="#BFDDA4"/>`;
+  for(let i=0;i<160;i++)s+=`<circle cx="${(i*137)%1200}" cy="${(i*251+40)%800}" r="2.2" fill="#A8CE8B"/>`;
+  s+=`<rect x="20" y="398" width="1180" height="44" rx="22" fill="#EAD8AE"/><rect x="578" y="252" width="44" height="420" rx="22" fill="#EAD8AE"/>
+  <rect x="188" y="336" width="24" height="80" fill="#EAD8AE"/><rect x="968" y="336" width="24" height="80" fill="#EAD8AE"/><rect x="188" y="430" width="24" height="44" fill="#EAD8AE"/><rect x="828" y="430" width="24" height="44" fill="#EAD8AE"/>
+  <circle cx="600" cy="420" r="104" fill="#F1E6C9" stroke="#D9C38F" stroke-width="3"/><circle cx="600" cy="420" r="38" fill="#9FD4E8" stroke="#6BA7BE" stroke-width="3"/><circle cx="600" cy="420" r="13" fill="#D7F2FA"/>
+  <ellipse cx="330" cy="690" rx="96" ry="48" fill="#9FD4E8" stroke="#6BA7BE" stroke-width="3"/><ellipse cx="300" cy="680" rx="18" ry="7" fill="#D7F2FA"/>`;
+  [[90,90],[300,110],[420,60],[760,70],[860,140],[1080,90],[60,300],[420,250],[760,260],[70,560],[360,560],[470,590],[700,580],[960,560],[1000,700],[150,740],[460,740],[760,730],[880,760],[1060,780]].forEach(([x,y],i)=>s+=tree(x,y,i%3?20:26,i%4?'#6FAE5B':'#5E9E52'));
+  [[240,640],[420,500],[770,330],[1030,480],[90,450]].forEach(([x,y])=>{s+=`<circle cx="${x}" cy="${y}" r="4" fill="#F4A7C0"/><circle cx="${x+9}" cy="${y+4}" r="4" fill="#F2C14E"/><circle cx="${x-7}" cy="${y+6}" r="4" fill="#FFFFFF"/>`});
+  for(let y=150;y<800;y+=56)if(y<350||y>480){s+=tree(1150,y,24,'#4F8A45');s+=tree(1110,y+28,18,'#5E9E52')}
+  s+=`<rect x="1120" y="398" width="80" height="44" fill="#D9C08E"/><g stroke="${k}" stroke-width="3"><rect x="1098" y="352" width="10" height="70" fill="#8A6A47"/><rect x="1172" y="352" width="10" height="70" fill="#8A6A47"/><rect x="1090" y="344" width="100" height="16" rx="6" fill="#C2553F"/></g>`;
+  // 三面鏡神殿
+  s+=`<g stroke="${k}" stroke-width="3" stroke-linejoin="round"><rect x="525" y="150" width="150" height="108" fill="#F6F0E0"/><path d="M505 156 L600 98 L695 156 Z" fill="#7B6FE0"/><rect x="586" y="214" width="28" height="44" rx="12" fill="#4B3FD1"/>
+  <circle cx="556" cy="188" r="15" fill="#F2C14E"/><circle cx="644" cy="188" r="15" fill="#F28C6B"/><circle cx="600" cy="178" r="15" fill="#9B7EDE"/></g>`;
+  // AI 觀察站（施工中）
+  s+=`<g stroke="${k}" stroke-width="3"><rect x="164" y="220" width="72" height="118" fill="#E4E9F2"/><path d="M152 224 L200 172 L248 224 Z" fill="#6B8FB8"/><circle cx="200" cy="262" r="14" fill="#fff"/><circle cx="200" cy="262" r="6" fill="${k}"/></g>${scaffold(164,220,72,118)}`;
+  // 提問道場
+  s+=`<g stroke="${k}" stroke-width="3" stroke-linejoin="round"><rect x="916" y="250" width="128" height="90" fill="#FBEFE3"/><path d="M898 256 L980 204 L1062 256 Z" fill="#C2553F"/><rect x="966" y="300" width="28" height="40" fill="#8A5A3A"/><rect x="930" y="270" width="24" height="20" fill="#F2C14E"/><rect x="1006" y="270" width="24" height="20" fill="#F2C14E"/></g>`;
+  // 我的窩
+  s+=`<g stroke="${k}" stroke-width="3"><rect x="134" y="478" width="132" height="96" rx="6" fill="#FFF6E6"/><rect x="128" y="472" width="144" height="16" rx="6" fill="#E07B5F"/><rect x="238" y="500" width="16" height="24" fill="#B85C45"/><rect x="186" y="472" width="28" height="30" rx="4" fill="#8A5A3A"/><rect x="148" y="520" width="26" height="22" fill="#9FD4E8"/><rect x="226" y="536" width="26" height="22" fill="#9FD4E8"/></g>`;
+  // 學伴小屋（施工中）
+  s+=`<g stroke="${k}" stroke-width="3"><rect x="774" y="478" width="132" height="96" rx="6" fill="#EFE8F8"/><rect x="768" y="472" width="144" height="16" rx="6" fill="#8CC37A"/><rect x="826" y="472" width="28" height="30" rx="4" fill="#6E5A8A"/></g>${scaffold(774,478,132,96)}`;
+  // 互測市集（施工中）
+  s+=`<g stroke="${k}" stroke-width="3">${[512,572,632].map((x,i)=>`<rect x="${x}" y="690" width="52" height="60" fill="#FFF6E6"/><path d="M${x-6} 690 h64 l-8 -22 h-48 z" fill="${['#F28C6B','#7EC8E3','#F2C14E'][i]}"/>`).join('')}</g>${scaffold(506,668,190,82)}`;
+  // 告示板、照相亭
+  s+=`<g stroke="${k}" stroke-width="3"><rect x="668" y="352" width="6" height="22" fill="#8A6A47"/><rect x="706" y="352" width="6" height="22" fill="#8A6A47"/><rect x="656" y="316" width="68" height="40" rx="6" fill="#FFFDF5"/></g><text x="690" y="341" text-anchor="middle" font-size="13" font-weight="700" fill="${k}" font-family="LXGW WenKai TC, Noto Sans TC, sans-serif">今日一問</text>
+  <g stroke="${k}" stroke-width="3"><rect x="486" y="316" width="52" height="56" rx="8" fill="#F4A7C0"/><rect x="496" y="330" width="32" height="42" fill="#C4577A"/><circle cx="512" cy="326" r="5" fill="#fff"/></g>`;
+  [130,370,830,1060].forEach(x=>s+=`<rect x="${x-2}" y="370" width="4" height="26" fill="#6B5A44"/><circle class="lamp" cx="${x}" cy="368" r="7" fill="#FFE7A3" stroke="${k}" stroke-width="2"/>`);
+  return s+'</svg>'}
+function buildTown(){
+  world.innerHTML=townArt()+'<div class="veil"></div><div class="mark" id="mark" hidden></div>'+
+    Object.entries(SPOTS).map(([id,s])=>`<button class="spot${s.open?'':' locked'}" data-spot="${id}" style="left:${s.box[0]}px;top:${s.box[1]}px;width:${s.box[2]}px;height:${s.box[3]}px" aria-label="走到${s.name}${s.open?'':'（施工中）'}"><span class="lbl">${s.name}${s.open?'':' · 施工中'}</span></button>`).join('');
+  const h=new Date().getHours();town.classList.toggle('night',h>=18||h<6)}
+buildTown();
+
+const WAY=[];for(let x=80;x<=1060;x+=70)WAY.push({x,y:RY+(x%3)*6-6});
+for(let a=0;a<6;a++)WAY.push({x:600+Math.cos(a)*72,y:RY+Math.sin(a)*72});
+WAY.push({x:600,y:300},{x:600,y:560},{x:600,y:620},{x:520,y:400},{x:690,y:400});
+function mkEnt(cls,name){const el=document.createElement('div');el.className='ent '+cls;el.innerHTML=`<div class="bub" hidden></div><div class="body"></div><div class="tag">${esc(name)}</div>`;world.appendChild(el);return el}
+const me={x:S.pos.x,y:S.pos.y,path:[],face:1,pending:null};me.el=mkEnt('me','你');
+const npcs=NEIGHBORS.map((n,i)=>{const w=WAY[(i*5+2)%WAY.length];const e={...n,idx:i,x:w.x,y:w.y,tx:w.x,ty:w.y,face:1,pause:1+Math.random()*3,talk:4+Math.random()*10};
+  e.el=mkEnt('npc',n.name);e.el.setAttribute('role','button');e.el.tabIndex=0;e.el.setAttribute('aria-label',`和${n.name}打招呼`);e.el.dataset.npc=i;e.el.querySelector('.body').innerHTML=miniSVG(n);return e});
+function say(ent,html,ms){const b=ent.el.querySelector('.bub');b.innerHTML=html;b.hidden=false;clearTimeout(ent.bt);ent.bt=setTimeout(()=>b.hidden=true,ms||2600)}
+function cheer(){npcs.forEach((n,i)=>setTimeout(()=>say(n,ICON.spark,2200),200+i*180))}
+function place(e,moving){e.el.style.transform=`translate(${(e.x-32).toFixed(1)}px,${(e.y-60).toFixed(1)}px)`;e.el.style.zIndex=10+Math.round(e.y);e.el.classList.toggle('walk',!!moving&&MOTION);e.el.classList.toggle('face-l',e.face<0)}
+function routeTo(t){const p=[];if(Math.abs(me.y-RY)>8)p.push({x:me.x,y:RY});if(Math.abs(t.y-RY)>8)p.push({x:t.x,y:RY});p.push({x:t.x,y:t.y});return p}
+function walkTo(id){const s=SPOTS[id];S.open=null;closeNpc();render();if(Math.hypot(me.x-s.dx,me.y-s.dy)<12){openSpot(id);return}me.path=routeTo({x:s.dx,y:s.dy});me.pending=id}
+function addDiary(t){S.diary.unshift({d:new Date().toLocaleDateString('zh-TW'),t});S.diary=S.diary.slice(0,40)}
+function openSpot(id){const s=SPOTS[id];if(!S.visited[id]){S.visited[id]=true;addDiary(s.diary);toast('發現新地方：'+s.name)}S.open=id;closeNpc();render();
+  const sb=document.getElementById('sheetBody');sb.scrollTop=0;document.getElementById('leave').focus({preventScroll:true})}
+function leaveSpot(){const s=SPOTS[S.open];S.open=null;render();if(s){me.y=s.dy+(s.dy<RY?18:-18);}town.focus({preventScroll:true})}
+
+let cam={x:0,y:0,s:1},keys={},nearSpot=null,lastT=performance.now();
+function tick(now){const dt=Math.min(.05,(now-lastT)/1000);lastT=now;
+  const mvx=(keys.ArrowRight||keys.d?1:0)-(keys.ArrowLeft||keys.a?1:0),mvy=(keys.ArrowDown||keys.s?1:0)-(keys.ArrowUp||keys.w?1:0);let moving=false;
+  if((mvx||mvy)&&!S.open){me.path=[];me.pending=null;const l=Math.hypot(mvx,mvy);me.x+=mvx/l*SPD*dt;me.y+=mvy/l*SPD*dt;if(mvx)me.face=mvx;moving=true}
+  else if(me.path.length){const t=me.path[0],dx=t.x-me.x,dy=t.y-me.y,d=Math.hypot(dx,dy),st=SPD*dt;
+    if(d<=st){me.x=t.x;me.y=t.y;me.path.shift();if(!me.path.length&&me.pending){const id=me.pending;me.pending=null;openSpot(id)}}
+    else{me.x+=dx/d*st;me.y+=dy/d*st;if(Math.abs(dx)>1)me.face=Math.sign(dx)}moving=true}
+  me.x=clamp(me.x,24,W-24);me.y=clamp(me.y,70,H-8);place(me,moving);
+  npcs.forEach(n=>{let mv=false;if(MOTION){if(n.pause>0)n.pause-=dt;else{const dx=n.tx-n.x,dy=n.ty-n.y,d=Math.hypot(dx,dy),st=48*dt;
+      if(d<=st){n.x=n.tx;n.y=n.ty;n.pause=1.5+Math.random()*4;if(n.goal){n.goal=null}else{const w=WAY[Math.floor(Math.random()*WAY.length)];n.tx=w.x+(Math.random()*30-15);n.ty=w.y+(Math.random()*16-8)}}
+      else{n.x+=dx/d*st;n.y+=dy/d*st;if(Math.abs(dx)>.5)n.face=Math.sign(dx);mv=true}}
+    n.talk-=dt;if(n.talk<=0){n.talk=9+Math.random()*12;if(!S.open)say(n,esc(n.quote.length>13?n.quote.slice(0,13)+'…':n.quote),3200)}}
+    place(n,mv)});
+  nearSpot=null;if(!me.path.length&&!S.open){for(const [id,s] of Object.entries(SPOTS))if(Math.hypot(me.x-s.dx,me.y-s.dy)<48){nearSpot=id;break}}
+  updateHint();
+  const tw=town.clientWidth,th=town.clientHeight;const sc=clamp(Math.max(tw/W,th/H)*0.98,0.62,1.05);cam.s=sc;
+  cam.x=W*sc<=tw?(W*sc-tw)/2:clamp(me.x*sc-tw/2,0,W*sc-tw);cam.y=H*sc<=th?(H*sc-th)/2:clamp(me.y*sc-th/2,0,H*sc-th);
+  world.style.transform=`translate(${(-cam.x).toFixed(1)}px,${(-cam.y).toFixed(1)}px) scale(${sc})`;
+  requestAnimationFrame(tick)}
+let hintKey='';
+function updateHint(){const key=S.open?'':(nearSpot||(me.path.length?'walk':'idle'));if(key===hintKey)return;hintKey=key;const h=document.getElementById('hint');
+  if(!key){h.hidden=true;return}h.hidden=false;
+  if(key==='walk')h.innerHTML=`<span>${me.pending?'正在走去'+SPOTS[me.pending].name+'…':'散步中…'}</span>`;
+  else if(key==='idle')h.innerHTML=`<span>點建築物，小怪獸會走過去；也可以點草地，或用方向鍵、WASD 移動。點其他小怪獸可以打招呼。</span>`;
+  else h.innerHTML=`<span>${SPOTS[key].name}${SPOTS[key].open?'':'（施工中）'}</span><button class="btn" data-enter="${key}">進去看看</button><span class="note kbd">或按 Enter</span>`}
+
+/* ---------- 其他小怪獸 ---------- */
+let npcOpen=null;
+function openNpc(i){npcOpen=i;const n=npcs[i];const shared=n.self.filter(x=>n.partner.includes(x));const seen=!!S.plaza.seen[i];const card=document.getElementById('npccard');
+  card.innerHTML=`<div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="width:72px;flex:none">${miniSVG(n)}</div><div style="min-width:0;flex:1"><div class="between"><h3>${n.name}</h3><button class="btn link" data-act="closeNpc" aria-label="關閉">關閉</button></div>
+  <p class="small muted">公開名片 · 共識區：${shared.map(x=>C[x].name).join('、')||'還沒公開'}${n.item?' · 道具：'+Object.values(TYPES).find(t=>t.item===n.item).itemName:''}</p><p class="small">「${esc(n.quote)}」</p></div></div>
+  <div class="row"><button class="chip" data-emote="wave">揮手</button><button class="chip" data-emote="heart">送一顆心</button><button class="chip" data-emote="seen" aria-pressed="${seen}">${seen?'已看見':'我看見了'}</button><button class="chip" data-emote="dojo">一起去提問道場</button></div>`;
+  card.hidden=false}
+function closeNpc(){npcOpen=null;const c=document.getElementById('npccard');if(c)c.hidden=true}
+function emote(kind){const n=npcs[npcOpen];if(!n)return;
+  if(kind==='seen'){S.plaza.seen[n.idx]=!S.plaza.seen[n.idx];say(me,ICON.seen);setTimeout(()=>say(n,ICON.spark),700);save();openNpc(n.idx);return}
+  if(kind==='dojo'){say(me,ICON.wave);setTimeout(()=>say(n,'好啊！',1800),500);const s=SPOTS.dojo;n.tx=s.dx+34;n.ty=s.dy+6;n.goal=true;n.pause=0;closeNpc();walkTo('dojo');return}
+  say(me,ICON[kind]);setTimeout(()=>say(n,ICON[kind]),700)}
+
+/* ---------- 特別時刻 ---------- */
+function seerCount(){return S.aiWrong||0}
+function reveal(title,text,eyebrow){const r=document.getElementById('reveal');
+  r.innerHTML=`<div class="box pop"><span class="eyebrow" style="color:var(--night-muted)">${eyebrow}</span><div class="monster-stage">${monsterSVG(myMonster({nickname:null}))}</div><h2>${title}</h2><p class="muted">${text}</p><button class="btn gold" data-act="closeReveal">繼續逛鎮上</button></div>`;
+  r.hidden=false;r.querySelector('button').focus();cheer()}
+function checkReveals(){if(seerCount()>=3&&!S.seerShown){S.seerShown=true;addDiary('小怪獸的額頭多了一隻看穿的眼睛。');
+  reveal('隱藏型態：識破者','你已經 3 次附上理由，說出 AI 哪裡讀錯了。小怪獸的額頭多了一隻看穿的眼睛。','發現了隱藏型態')}}
+
+/* ---------- 新的地點畫面 ---------- */
+function viewSoon(){const s=SPOTS[S.open];return`<div class="card" style="text-align:center;align-items:center"><svg viewBox="0 0 120 80" width="160" aria-hidden="true"><rect x="10" y="30" width="100" height="44" rx="6" fill="var(--sunk)"/><g stroke="#8A6A47" stroke-width="4">${[0,1,2,3].map(i=>`<line x1="${20+i*24}" y1="74" x2="${40+i*24}" y2="30"/>`).join('')}</g><rect x="40" y="10" width="40" height="18" rx="4" fill="#F2C14E"/></svg><h2>${s.name}還在施工</h2><p class="muted">${s.soon}</p></div>`}
+function viewPhoto(){const near=npcs.filter(n=>Math.hypot(n.x-SPOTS.photo.dx,n.y-SPOTS.photo.dy)<300);const p=S.photo;
+  const crew=p&&p.names?p.names.map(nm=>NEIGHBORS.find(n=>n.name===nm)).filter(Boolean):near;
+  return`<div class="intro"><span class="eyebrow">同框照相亭</span><h1>和附近的小怪獸拍一張</h1><p>照片只是把大家放在一起，不比較誰長得比較快。</p></div>
+  ${p&&p.names?`<div class="card pop" style="background:#FFFDF5;color:#1D1B33;border:8px solid #FFFFFF;box-shadow:0 6px 20px rgba(0,0,0,.12)"><div class="row" style="justify-content:center;flex-wrap:wrap"><span style="width:96px">${monsterSVG(myMonster({nickname:null}))}</span>${crew.map(n=>`<span style="width:84px">${miniSVG(n)}</span>`).join('')}</div><p style="text-align:center;font-family:var(--f-display);font-size:18px">${esc(S.card.name||'我')}、${crew.map(n=>n.name).join('、')||'一個人也很好'}</p><p class="note" style="text-align:center;color:#5A5873">怪獸鎮 · ${p.d}</p></div><div class="row"><button class="btn ghost" data-act="photoAgain">再拍一張</button></div>`
+  :`<div class="card"><p>${near.length?`現在旁邊有 ${near.map(n=>n.name).join('、')}。`:'附近暫時沒有其他小怪獸。可以點一隻小怪獸，邀他一起過來。'}</p><div><button class="btn gold" data-act="snap">拍一張</button></div></div>`}`}
+function viewDiary(){return`<div class="card"><h3>小怪獸日記</h3><p class="note">記下你在鎮上走過的地方，和小怪獸長大的時刻。</p>${S.diary.length?S.diary.map(e=>`<div class="toggle-row" style="align-items:flex-start;padding-block:8px"><span>${esc(e.t)}</span><span class="note" style="flex:none">${e.d}</span></div>`).join(''):'<p class="muted">還沒有日記。去鎮上走走吧。</p>'}</div><div><button class="btn link" data-act="reset">清除示範資料，從頭開始</button></div>`}
+
+/* ---------- 繪製 ---------- */
+const VIEWS={hatch:viewHatch,home:viewHome,plaza:viewPlaza,dojo:viewDojo,quest:viewQuest,photo:viewPhoto};
+function render(){
+  me.el.querySelector('.body').innerHTML=monsterSVG(myMonster({nickname:null}));
+  me.el.querySelector('.tag').textContent=S.card.name||(S.hatch.done?'你':'你的蛋');
+  document.getElementById('meChip').innerHTML=monsterSVG(myMonster({nickname:null}))+`<span>${esc(S.card.name||(S.hatch.done?'還沒取名':'一顆蛋'))}</span>`;
+  const sheet=document.getElementById('sheet'),sb=document.getElementById('sheetBody');
+  if(S.open){const keep=sheet.hidden?0:sb.scrollTop;sheet.hidden=false;document.getElementById('sheetTitle').textContent=SPOTS[S.open].name;
+    sb.innerHTML=(SPOTS[S.open].open?VIEWS[S.open]:viewSoon)();sb.scrollTop=keep}else sheet.hidden=true;
+  hintKey='';checkReveals();save()}
+
+/* ---------- 輸入 ---------- */
+function typing(e){return /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)}
+window.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){if(!document.getElementById('reveal').hidden){document.getElementById('reveal').hidden=true;return}if(npcOpen!==null){closeNpc();return}if(S.open){leaveSpot();return}}
+  if(typing(e)||S.open)return;
+  const k=e.key.length===1?e.key.toLowerCase():e.key;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(k)){keys[k]=true;if(k.startsWith('Arrow'))e.preventDefault()}
+  if(e.key==='Enter'&&nearSpot&&e.target===town){openSpot(nearSpot)}
+  if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.npc!==undefined){openNpc(+e.target.dataset.npc)}});
+window.addEventListener('keyup',e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;keys[k]=false});
+window.addEventListener('blur',()=>keys={});
+world.addEventListener('click',e=>{const n=e.target.closest('.ent.npc');if(n){openNpc(+n.dataset.npc);return}
+  if(e.target.closest('.spot'))return;const r=town.getBoundingClientRect();const x=(e.clientX-r.left+cam.x)/cam.s,y=(e.clientY-r.top+cam.y)/cam.s;
+  closeNpc();if(S.open)return;me.path=[{x:clamp(x,24,W-24),y:clamp(y,70,H-8)}];me.pending=null;const m=document.getElementById('mark');m.style.left=(x-12)+'px';m.style.top=(y-6)+'px';m.hidden=false;clearTimeout(m.t);m.t=setTimeout(()=>m.hidden=true,900)});
+
+document.addEventListener('input',e=>{const t=e.target;
+  if(t.dataset.bind){setPath(t.dataset.bind,t.value);save();
+    if(['dojo.mine','quest.answer'].includes(t.dataset.bind)){const btn=document.querySelector(t.dataset.bind==='dojo.mine'?'[data-act="dojoLock"]':'[data-act="submitQuest"]');if(btn){btn.disabled=!t.value.trim();if(t.dataset.bind==='dojo.mine')btn.textContent=t.value.trim()?'鎖定，看夥伴怎麼改':'先寫你的版本'}}}
+  if(t.dataset.reason){S.hatch.reasons[t.dataset.reason]=t.value;save()}});
+document.addEventListener('change',e=>{if(e.target.id==='ind')render()});
+function setPath(path,val){const [a,b]=path.split('.');S[a][b]=val}
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2400)}
+
+document.addEventListener('click',e=>{const t=e.target.closest('button,[data-go]');if(!t)return;const d=t.dataset,h=S.hatch;
+  if(d.spot){document.getElementById('placesMenu').hidden=true;walkTo(d.spot);return}
+  if(d.enter){openSpot(d.enter);return}
+  if(d.go){walkTo(d.go);return}
+  if(d.emote){emote(d.emote);return}
+  if(t.id==='placesBtn'){const m=document.getElementById('placesMenu');m.hidden=!m.hidden;t.setAttribute('aria-expanded',String(!m.hidden));return}
+  if(d.pick){const i=h.self.indexOf(d.pick);if(i>=0)h.self.splice(i,1);else if(h.self.length<3)h.self.push(d.pick);else toast('最多選 3 張，先取消一張');render();return}
+  if(d.tab){S.card.tab=d.tab;render();return}
+  if(d.vis){S.card.vis[d.vis]=!S.card.vis[d.vis];render();return}
+  if(d.bguess){S.bside.guess=d.bguess;render();return}
+  if(d.override){const was=S.bside.override;S.bside.override=d.override==='confirmer'?null:d.override;if(!was&&S.bside.override)S.aiWrong=(S.aiWrong||0)+1;render();toast('道具換好了');return}
+  if(d.ck){S.checkin[d.ck]=d.v;render();return}
+  if(d.cguess){S.career.guess=d.cguess;render();return}
+  if(d.seen){S.plaza.seen[d.seen]=!S.plaza.seen[d.seen];if(S.plaza.seen[d.seen])say(npcs[+d.seen],ICON.spark);render();return}
+  if(d.final){S.dojo.final=d.final;render();return}
+  if(d.start){S.quest.active=d.start;S.quest.phase='answer';S.quest.answer='';S.quest.hint=false;S.quest.recall=!!d.recall;render();document.getElementById('sheetBody').scrollTop=0;return}
+  if(d.qguess){const q=S.quest,x=QUESTS.find(z=>z.id===q.active);q.guess=d.qguess;q.before=sproutLevel(x.attr);q.skills[x.attr]=(q.skills[x.attr]||0)+1;if(q.recall)q.recalls[x.attr]=(q.recalls[x.attr]||0)+1;q.done.push(x.id);q.lastGrow=x.id;q.phase='reveal';
+    const after=sproutLevel(x.attr);if(after>q.before){addDiary(`${ATTRS[x.attr].part}${SPROUT[after]}了，因為完成了「${x.chapterName}」的一關。`);cheer()}render();return}
+  switch(d.act){
+    case'leave':leaveSpot();return;
+    case'closeNpc':closeNpc();return;
+    case'closeReveal':document.getElementById('reveal').hidden=true;return;
+    case'lock':h.step='wait';break;
+    case'backPick':h.step='pick';break;
+    case'startFlip':h.step='flip';h.n=0;break;
+    case'flip':h.n++;h.disputeOpen=null;break;
+    case'openDispute':h.disputeOpen=d.id;break;
+    case'cancelDispute':h.disputeOpen=null;break;
+    case'saveDispute':{const v=(document.getElementById('dispute')||{}).value||'';if(!v.trim()){toast('請寫下理由，才能標記 AI 讀錯我');return}h.disputed[d.id]=v.trim();h.disputeOpen=null;S.aiWrong=(S.aiWrong||0)+1;toast('已記下，光環改成虛線');break}
+    case'finishFlip':h.done=true;h.step='result';addDiary('破殼了！小怪獸轉過身，第一次看見自己背上長了什麼。');cheer();break;
+    case'toHome':S.card.tab='A';walkTo('home');return;
+    case'finalize':S.card.finalized=true;addDiary('夥伴替小怪獸取的暱稱是「'+S.card.nickname+'」。');toast('夥伴替牠取的暱稱：'+S.card.nickname);break;
+    case'unlockB':if(!document.getElementById('consent').checked){toast('請先勾選「受訪者已同意」');return}S.bside.unlocked=true;render();
+      addDiary('B 面打開了，小怪獸進化成成長體，拿到了'+TYPES[S.bside.override||'confirmer'].itemName+'。');
+      reveal('進化：成長體',`你猜自己是${TYPES[S.bside.guess].name}，AI 讀到的是${TYPES.confirmer.name}。是你和夥伴完成第 2 週互訪，讓牠拿到了${TYPES.confirmer.itemName}。`,'小怪獸進化了');break;
+    case'submitCheckin':S.checkin.submitted=true;addDiary('做了今天的打卡。');break;
+    case'editCheckin':S.checkin.submitted=false;break;
+    case'careerReset':S.career.guess=null;break;
+    case'postPlaza':if(!S.plaza.answer.trim()){toast('先寫一句你的回答');return}S.plaza.posted=true;say(me,ICON.spark);break;
+    case'dojoLock':S.dojo.step='partners';break;
+    case'dojoAI':S.dojo.step='ai';break;
+    case'dojoWrong':S.dojo.aiWrong=true;S.aiWrong=(S.aiWrong||0)+1;break;
+    case'dojoReset':S.dojo={q:'',mine:'',step:'write',final:null,aiWrong:false};break;
+    case'hint':S.quest.hint=true;break;
+    case'submitQuest':S.quest.phase='pending';break;
+    case'feedbackArrive':S.quest.phase='feedback';break;
+    case'questBack':S.quest.phase='list';S.quest.active=null;break;
+    case'gotoDaily':S.card.tab='daily';S.quest.phase='list';walkTo('home');return;
+    case'snap':S.photo={names:npcs.filter(n=>Math.hypot(n.x-SPOTS.photo.dx,n.y-SPOTS.photo.dy)<300).map(n=>n.name),d:new Date().toLocaleDateString('zh-TW')};addDiary('在照相亭和'+(S.photo.names.join('、')||'自己')+'拍了一張同框照。');break;
+    case'photoAgain':S.photo=null;break;
+    case'reset':{S=fresh();me.x=S.pos.x;me.y=S.pos.y;me.path=[];toast('已清除，從頭開始');break}
+    default:return}
+  render()});
+
+setInterval(()=>{S.pos={x:Math.round(me.x),y:Math.round(me.y)};save()},2000);
+render();town.focus({preventScroll:true});requestAnimationFrame(tick);
+</script>
+
+</body></html>
+<script src="./team-updates.js"></script>
+</body></html>
