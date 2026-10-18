@@ -206,7 +206,7 @@ const AI = ['affirmation','guidance','curiosity'];
 const AI_QUOTE = {affirmation:'有人跟我說這個設計幫到他，我會開心一整天',guidance:'卡住的時候，我會先去找學姊問方向',curiosity:'看到新工具我都會先自己玩一輪'};
 const HEADLINE = '我比較希望先自己試過，確定不會出錯再拿出來';
 function activeAI(){return S?.meta?.aiAvailable===false?[]:AI}
-function selectedHeadline(){const lines=[HEADLINE,...Object.values(AI_QUOTE)];return lines[S?.meta?.headline||0]||HEADLINE}
+function selectedHeadline(){if(S?.meta?.aiAvailable===false)return '尚無已核對的 AI 原句';const lines=[HEADLINE,...Object.values(AI_QUOTE)];return lines[S?.meta?.headline||0]||HEADLINE}
 const ZONES = {
   consensus:{name:'共識區',tone:'你被完整看見了',rank:0,egg:'蛋殼亮起來了'},
   human_win:{name:'人腦勝區',tone:'夥伴懂你，AI 沒看出來',rank:1,egg:'蛋殼染上夥伴給的顏色'},
