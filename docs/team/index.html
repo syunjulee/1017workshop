@@ -356,7 +356,7 @@ function monsterSVG(m){
 function myMonster(extra){const self=S.hatch.self,o=revealOrder(self);const blind=o.filter(x=>x.zone==='blind').map(x=>x.id);const hidden=o.filter(x=>x.zone==='hidden').map(x=>x.id);
   const st=stage();const v=extra&&extra.viewer==='public'?S.card.vis:null;
   const back=v&&!v.back?[]:blind;
-  const m={stage:st,features:self,colors:PARTNER.map(id=>C[id].color),auras:(st==='egg'||(v&&!v.aura))?[]:activeAI().map(id=>({id,disputed:!!S.hatch.disputed[id]})),back,embrace:blind.length?[]:(v?[]:hidden),fullGlow:o.every(x=>x.zone==='consensus'),item:itemNow(),skills:skillLevels(),
+  const m={stage:st,features:self,colors:PARTNER.map(id=>C[id].color),auras:(st==='egg'||(v&&!v.aura))?[]:activeAI().map(id=>({id,disputed:!!S.hatch.disputed[id]||S.meta?.aiChoices?.[id]==='reject'})),back,embrace:blind.length?[]:(v?[]:hidden),fullGlow:o.every(x=>x.zone==='consensus'),item:itemNow(),skills:skillLevels(),
     nickname:(S.card.finalized&&(!v||v.nickname))?S.card.nickname:null,withShell:st==='baby',seer:seerCount()>=3};
   m.label=describe(m);return Object.assign(m,extra||{})}
 function describe(m){if(m.stage==='egg')return'一顆還沒孵化的蛋';const f=m.features.map(id=>C[id].feat).join('、');const c=m.colors.length?PARTNER.map(id=>C[id].name).join('、')+'的顏色漸層':'';let t=`有${f}的小怪獸，${c}`;if(m.back.length)t+=`，背上長著${m.back.map(id=>C[id].feat).join('、')}`;const lv=m.skills||{};const sk=Object.keys(ATTRS).filter(a=>lv[a]).map(a=>ATTRS[a].part+SPROUT[lv[a]]);if(sk.length)t+='；技能特徵：'+sk.join('、');if(m.seer)t+='；額頭有一隻看穿的眼睛';return t}

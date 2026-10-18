@@ -1,12 +1,12 @@
 var TeamTownCore = (()=>{
- const BUILD='team-prd-v3-r1';
+ const BUILD='team-prd-v3-r2';
  const ATTR=['research','structure','ai','automation','judgment'];
  const must=(ok,msg)=>{if(!ok)throw Error(msg)};
  const copy=x=>JSON.parse(JSON.stringify(x));
  const opt=x=>x===''||x===null||x===undefined?null:Number(x);
  function init(s){
   s.meta=s.meta||{schema:1,mode:'mock',build:BUILD,p2:false,onboarded:false,target:'AI 產品設計師',tools:'',industry:'',support:'gentle',aiChoices:{},draft:'',goal:'',work:'',give:'',want:'',result:null,review:'draft',attempts:[],recallDue:[],recallCompleted:{},recallCheckpoint:0,history:[],headline:0,stuckStatus:'unknown',audit:[],labTab:'review',aiAvailable:true};
-  s.meta.build=BUILD;s.meta.mode='mock';return s;
+  s.meta.aiReasons=s.meta.aiReasons||{};s.meta.build=BUILD;s.meta.mode='mock';return s;
  }
  function daily(s,targets,date){
   const c=s.checkin,m=s.meta;const confidence=opt(c.conf),energy=opt(c.energy),time=opt(c.tomorrow),mins=opt(c.mins);
@@ -29,9 +29,9 @@ var TeamTownCore = (()=>{
   if(s.quest.done.length-s.meta.recallCheckpoint>=3){const id=s.quest.done[s.quest.done.length-3];if(!s.meta.recallDue.includes(id))s.meta.recallDue.push(id);s.meta.recallCheckpoint=s.quest.done.length;delete s.meta.recallCompleted[id];}
   return {grew:true};
  }
- function confirmDraft(s){const m=s.meta;must(s.hatch.done,'請先完成三面鏡');must(m.draft.trim()&&m.goal.trim()&&m.give.trim()&&m.want.trim(),'請填寫本人認同的成果、目標、可以給與想要');must(['affirmation','guidance','curiosity'].every(id=>['adopt','reject'].includes(m.aiChoices[id])),'請逐項決定 AI 看法要採用或保留為不同意');m.review='pending';}
+ function confirmDraft(s){const m=s.meta;must(s.hatch.done,'請先完成三面鏡');must(m.draft.trim()&&m.goal.trim()&&m.give.trim()&&m.want.trim(),'請填寫本人認同的成果、目標、可以給與想要');must(['affirmation','guidance','curiosity'].every(id=>['adopt','reject'].includes(m.aiChoices[id])),'請逐項決定 AI 看法要採用或保留為不同意');must(['affirmation','guidance','curiosity'].every(id=>m.aiChoices[id]!=='reject'||m.aiReasons[id]?.trim()),'不同意 AI 時，請各留一句理由');m.review='pending';}
  function approveCard(s){must(s.meta.review==='pending','沒有待審核的名片');s.meta.review='approved';}
- function finalize(s){must(s.meta.review==='approved','請先由模擬團隊核對，再由本人確認');s.meta.result={id:'card-v1',text:s.meta.draft,goal:s.meta.goal,work:s.meta.work,give:s.meta.give,want:s.meta.want,aiChoices:copy(s.meta.aiChoices),self:s.hatch.self.slice(),reasons:copy(s.hatch.reasons)};s.card.finalized=true;s.meta.review='final';}
+ function finalize(s){must(s.meta.review==='approved','請先由模擬團隊核對，再由本人確認');s.meta.result={id:'card-v1',text:s.meta.draft,goal:s.meta.goal,work:s.meta.work,give:s.meta.give,want:s.meta.want,aiChoices:copy(s.meta.aiChoices),aiReasons:copy(s.meta.aiReasons),self:s.hatch.self.slice(),reasons:copy(s.hatch.reasons)};s.card.finalized=true;s.meta.review='final';}
  function markWrong(s,id,reason){must(reason.trim(),'請寫下不同意的理由');const first=!s.hatch.disputed[id];s.hatch.disputed[id]=reason.trim();if(first)s.aiWrong=(s.aiWrong||0)+1;return first;}
  function audit(s,action){s.meta.audit.push({at:new Date().toISOString(),action,place:s.open||'town'});s.meta.audit=s.meta.audit.slice(-250);}
  return {BUILD,ATTR,copy,must,init,daily,submit,review,finish,confirmDraft,approveCard,finalize,markWrong,audit};
